@@ -6,6 +6,21 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pwp_cb.db'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
+# Many to Many Relationship
+recipe_nutrition = db.Table("recipe_nutrition",
+                            db.Column("recipe_id", db.Integer, db.ForeignKey(
+                                "recipe.recipe_id"), primary_key=True),
+                            db.Column("nutrition_id", db.Integer, db.ForeignKey(
+                                "nutrition.nutrition_id"), primary_key=True)
+                            )
+
+
+recipe_cuisine = db.Table("recipe_cuisine",
+                          db.Column("recipe_id", db.Integer, db.ForeignKey(
+                              "recipe.recipe_id"), primary_key=True),
+                          db.Column("cuisine_id", db.Integer, db.ForeignKey(
+                              "cuisine.cuisine_id"), primary_key=True)
+                          )
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -43,9 +58,11 @@ class Recipe(db.Model):
     reviews = db.relationship('Review', back_populates='recipe')
     recipeIngredient = db.relationship(
         'RecipeIngredientQty', back_populates='recipe')
-    recipeCuisine = db.relationship('RecipeCuisine', back_populates='recipe')
-    recipeNutrition = db.relationship(
-        'RecipeNutrition', back_populates='recipe')
+
+    cuisines = db.relationship(
+        'Cuisine', secondary=recipe_cuisine, back_populates='recipes')
+    nutritions = db.relationship(
+        'Nutrition', secondary=recipe_nutrition, back_populates='recipes')
 
 
 class Review(db.Model):
@@ -101,19 +118,20 @@ class Cuisine(db.Model):
     created_timestamp = db.Column(db.Date, nullable=False)
     updated_timestamp = db.Column(db.Date, nullable=True)
 
-    recipeCuisine = db.relationship('RecipeCuisine', back_populates='cuisine')
+    recipes = db.relationship(
+        'Recipe', secondary=recipe_cuisine, back_populates='cuisines')
 
 
-class RecipeCuisine(db.Model):
-    __tablename__ = 'recipe_cuisine'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    recipe_id = db.Column(db.Integer, db.ForeignKey(
-        'recipe.recipe_id', ondelete='CASCADE'), nullable=False)
-    cuisine_id = db.Column(db.Integer, db.ForeignKey(
-        'cuisine.cuisine_id', ondelete='CASCADE'), nullable=False)
+# class RecipeCuisine(db.Model):
+#     __tablename__ = 'recipe_cuisine'
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     recipe_id = db.Column(db.Integer, db.ForeignKey(
+#         'recipe.recipe_id', ondelete='CASCADE'), nullable=False)
+#     cuisine_id = db.Column(db.Integer, db.ForeignKey(
+#         'cuisine.cuisine_id', ondelete='CASCADE'), nullable=False)
 
-    cuisine = db.relationship('Cuisine', back_populates='recipeCuisine')
-    recipe = db.relationship('Recipe', back_populates='recipeCuisine')
+#     cuisine = db.relationship('Cuisine', back_populates='recipeCuisine')
+#     recipe = db.relationship('Recipe', back_populates='recipeCuisine')
 
 
 class Nutrition(db.Model):
@@ -124,22 +142,22 @@ class Nutrition(db.Model):
     approver_id = db.Column(db.Integer, nullable=True)
     created_timestamp = db.Column(db.Date, nullable=False)
     updated_timestamp = db.Column(db.Date, nullable=True)
+    
+    recipes = db.relationship(
+        'Recipe', secondary=recipe_nutrition, back_populates='nutritions')
 
-    recipeNutrition = db.relationship(
-        'RecipeNutrition', back_populates='nutrition')
 
+# class RecipeNutrition(db.Model):
+#     __tablename__ = 'recipe_nutrition'
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     recipe_id = db.Column(db.Integer, db.ForeignKey(
+#         'recipe.recipe_id', ondelete='CASCADE'), nullable=False)
+#     nutrition_id = db.Column(db.Integer, db.ForeignKey(
+#         'nutrition.nutrition_id', ondelete='CASCADE'), nullable=False)
 
-class RecipeNutrition(db.Model):
-    __tablename__ = 'recipe_nutrition'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    recipe_id = db.Column(db.Integer, db.ForeignKey(
-        'recipe.recipe_id', ondelete='CASCADE'), nullable=False)
-    nutrition_id = db.Column(db.Integer, db.ForeignKey(
-        'nutrition.nutrition_id', ondelete='CASCADE'), nullable=False)
-
-    nutrition = db.relationship(
-        'Nutrition', back_populates='recipeNutrition')
-    recipe = db.relationship('Recipe', back_populates='recipeNutrition')
+#     nutrition = db.relationship(
+#         'Nutrition', back_populates='recipeNutrition')
+#     recipe = db.relationship('Recipe', back_populates='recipeNutrition')
 
 
 class Video(db.Model):
