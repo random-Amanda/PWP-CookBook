@@ -1,7 +1,7 @@
 import json
 import logging
-from flask_restful import Resource, reqparse
-from flask import Response, jsonify, request, url_for
+from flask_restful import Resource
+from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
 from cookbookapp import db
 from sqlalchemy.exc import IntegrityError
@@ -17,8 +17,8 @@ class ReviewCollection(Resource):
         body["description"] = "A collection of reviews"
 
         body["controls"] = {
-            "Create_review": {"method": "POST", "href": "/api/reviews", "title": "Create a new review", "schema": Review.get_schema()},
-            "Search_review": {"method": "GET", "href": "/api/reviews/search", "title": "Search for reviews"}
+            "create_review": {"method": "POST", "href": "/api/reviews/", "title": "Create a new review", "schema": Review.get_schema()},
+            "search_review": {"method": "GET", "href": "/api/reviews/search", "title": "Search for reviews"} # not implemented
         }
 
         reviews = Review.query.all()
@@ -26,9 +26,9 @@ class ReviewCollection(Resource):
 
             item = review.serialize()
             item["controls"] = {
-                "Self": {"method": "GET", "href": url_for("api.reviewitem", review=review.review_id), "title": "Review details"},
-                "Update": {"method": "PUT", "href": f"/api/reviews/{review.review_id}", "title": "Update review", "schema": Review.get_schema()},
-                "Delete": {"method": "DELETE", "href": f"/api/reviews/{review.review_id}", "title": "Delete review"}
+                "self": {"method": "GET", "href": url_for("api.reviewitem", review=review.review_id), "title": "Review details"},
+                "update": {"method": "PUT", "href": f"/api/reviews/{review.review_id}", "title": "Update review", "schema": Review.get_schema()},
+                "delete": {"method": "DELETE", "href": f"/api/reviews/{review.review_id}", "title": "Delete review"}
             }
 
             body["items"].append(item)
@@ -78,8 +78,8 @@ class ReviewItem(Resource):
             "review:update": {"method": "PUT", "href": f"/api/reviews/{review.review_id}", "title": "Update review", "schema": Review.get_schema()},
             "review:delete": {"method": "DELETE", "href": f"/api/reviews/{review.review_id}", "title": "Delete review"},
             "collection": {"method": "GET", "href": "/api/reviews/", "title": "Reviews collection"},
-            "review:get-recipie": {"method": "GET", "href": f"/api/recipes/{review.recipe_id}", "title": "Get recipe details"},
-            "review:get-user": {"method": "GET", "href": f"/api/users/{review.user_id}", "title": "Get user details"}
+            "cookbook:get-recipie": {"method": "GET", "href": f"/api/recipes/{review.recipe_id}", "title": "Get recipe details"},
+            "cookbook:get-user": {"method": "GET", "href": f"/api/users/{review.user_id}", "title": "Get user details"}
         }
         return Response(json.dumps(body), status=200, mimetype="application/json")
     
