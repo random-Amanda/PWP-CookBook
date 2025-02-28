@@ -1,10 +1,13 @@
 import json
+import logging
 from flask_restful import Resource, reqparse
 from flask import Response, jsonify, request, url_for
 from jsonschema import ValidationError, validate
 from cookbookapp import db
 from sqlalchemy.exc import IntegrityError
 from cookbookapp.models import Review
+
+logging.basicConfig(level=logging.INFO)
 
 class ReviewCollection(Resource):
     def get(self):
@@ -70,20 +73,64 @@ class ReviewCollection(Resource):
 
 class ReviewItem(Resource):
     def get(self, review):
-        review = Review.query.get_or_404(review.review_id)
-        return review.serialize()
+        body = review.serialize()
+        body["controls"] = {
+            "review:update": {"method": "PUT", "href": f"/api/reviews/{review.review_id}", "title": "Update review", "schema": Review.get_schema()},
+            "review:delete": {"method": "DELETE", "href": f"/api/reviews/{review.review_id}", "title": "Delete review"},
+            "collection": {"method": "GET", "href": "/api/reviews/", "title": "Reviews collection"},
+            "review:get-recipie": {"method": "GET", "href": f"/api/recipes/{review.recipe_id}", "title": "Get recipe details"},
+            "review:get-user": {"method": "GET", "href": f"/api/users/{review.user_id}", "title": "Get user details"}
+        }
+        return Response(json.dumps(body), status=200, mimetype="application/json")
     
-    """
-    def put(self, review_id):
-        review = Review.query.get_or_404(review_id)
-        #args = review_parser.parse_args()
-        review.user_id = args["user_id"]
-        review.recipe_id = args["recipe_id"]
-        review.rating = args["rating"]
-        review.feedback = args.get("feedback")
-        db.session.commit()
-        return review.serialize()
-    """
+    
+    def put(self, review):
+        if not request.is_json:
+            body = { 
+                "error": {
+                    "title": "Unsupported media type",
+                    "description": "Requests must be JSON"
+                }
+            }
+            return Response(json.dumps(body), status=415, mimetype="application/json")
+
+        try:
+            validate(request.json, Review.get_schema())
+        except ValidationError as e:
+            body = {
+                "error": {
+                    "title": "Invalid JSON document",
+                    "description": str(e)
+                }
+            }
+            return Response(json.dumps(body), status=400, mimetype="application/json")
+
+        logging.info(f"Request JSON: {request.json}")
+
+        review.rating = request.json["rating"]
+        review.user_id = request.json.get("user_id")
+        review.recipe_id = request.json.get("recipe_id")
+        review.feedback = request.json.get("feedback")
+
+        logging.info(f"Updated review: {review.serialize()}")
+
+        try:
+            db.session.commit()
+            logging.info("Database commit successful")
+        except Exception as e:
+            logging.error(f"Database commit failed: {e}")
+            db.session.rollback()
+            body = {
+                "error": {
+                    "title": "Database commit failed",
+                    "description": str(e)
+                }
+            }
+            return Response(json.dumps(body), status=500, mimetype="application/json")
+
+        return Response(status=204)
+
+    
     def delete(self, review):
         review = Review.query.get_or_404(review.review_id)
         db.session.delete(review)
