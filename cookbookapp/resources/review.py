@@ -12,12 +12,12 @@ logging.basicConfig(level=logging.INFO)
 class ReviewCollection(Resource):
     def get(self):
         body = {"items": []}
-        body["self_uri"] = "/api/reviews/"
+        body["self_uri"] = url_for("api.reviewcollection")
         body["name"] = "Review Collection"
         body["description"] = "A collection of reviews"
 
         body["controls"] = {
-            "create_review": {"method": "POST", "href": "/api/reviews/", "title": "Create a new review", "schema": Review.get_schema()},
+            "create_review": {"method": "POST", "href": url_for("api.reviewcollection"), "title": "Create a new review", "schema": Review.get_schema()},
             "search_review": {"method": "GET", "href": "/api/reviews/search", "title": "Search for reviews"} # not implemented
         }
 
@@ -27,8 +27,8 @@ class ReviewCollection(Resource):
             item = review.serialize()
             item["controls"] = {
                 "self": {"method": "GET", "href": url_for("api.reviewitem", review=review.review_id), "title": "Review details"},
-                "update": {"method": "PUT", "href": f"/api/reviews/{review.review_id}", "title": "Update review", "schema": Review.get_schema()},
-                "delete": {"method": "DELETE", "href": f"/api/reviews/{review.review_id}", "title": "Delete review"}
+                "update": {"method": "PUT", "href": url_for("api.reviewitem", review=review.review_id), "title": "Update review", "schema": Review.get_schema()}, # for refference
+                "delete": {"method": "DELETE", "href": url_for("api.reviewitem", review=review.review_id), "title": "Delete review"} # for refference
             }
 
             body["items"].append(item)
@@ -75,9 +75,9 @@ class ReviewItem(Resource):
     def get(self, review):
         body = review.serialize()
         body["controls"] = {
-            "review:update": {"method": "PUT", "href": f"/api/reviews/{review.review_id}", "title": "Update review", "schema": Review.get_schema()},
-            "review:delete": {"method": "DELETE", "href": f"/api/reviews/{review.review_id}", "title": "Delete review"},
-            "collection": {"method": "GET", "href": "/api/reviews/", "title": "Reviews collection"},
+            "review:update": {"method": "PUT", "href": url_for("api.reviewitem", review=review.review_id), "title": "Update review", "schema": Review.get_schema()},
+            "review:delete": {"method": "DELETE", "href": url_for("api.reviewitem", review=review.review_id), "title": "Delete review"},
+            "collection": {"method": "GET", "href": url_for("api.reviewcollection"), "title": "Reviews collection"},
             "cookbook:get-recipie": {"method": "GET", "href": f"/api/recipes/{review.recipe_id}", "title": "Get recipe details"},
             "cookbook:get-user": {"method": "GET", "href": f"/api/users/{review.user_id}", "title": "Get user details"}
         }
