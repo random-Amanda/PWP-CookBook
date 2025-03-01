@@ -10,22 +10,22 @@ from cookbookapp.models import User
 class UserCollection(Resource):
     def get(self):
         body = {"items": []}
-        body["self_uri"] = "/api/users/"
-        body["name"] = "User Collection"
-        body["description"] = "A collection of users"
+        # body["self_uri"] = "/api/users/"
+        # body["name"] = "User Collection"
+        # body["description"] = "A collection of users"
 
-        body["controls"] = {
-            "Create_user": {"method": "POST", "href": "/api/users", "title": "Create a new user", "schema": User.get_schema()},
-            "Search_user": {"method": "GET", "href": "/api/users/search", "title": "Search for users"}
-        }
+        # body["controls"] = {
+        #     "Create_user": {"method": "POST", "href": "/api/users", "title": "Create a new user", "schema": User.get_schema()},
+        #     "Search_user": {"method": "GET", "href": "/api/users/search", "title": "Search for users"}
+        # }
 
         users = User.query.all()
         for user in users:
             
             item = user.serialize()
-            item["controls"] = {
-                "Self": {"method": "GET", "href": url_for("api.useritem", user=user), "title": "User details"}
-            }
+            # item["controls"] = {
+            #     "Self": {"method": "GET", "href": url_for("api.useritem", user=user), "title": "User details"}
+            # }
 
             body["items"].append(item)
 
@@ -59,8 +59,17 @@ class UserCollection(Resource):
             password=request.json["password"]
         )
 
-        db.session.add(user)
-        db.session.commit()        
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except IntegrityError as e:
+            body = {
+                "error": {
+                    "title": "User already exists",
+                    "description": "A user with the username {} already exists.".format(user.username)
+                }
+            }
+            return Response(json.dumps(body), status=409, mimetype="application/json")        
 
         return Response(status=201, headers={
             "Location": url_for("api.useritem", user=user)
@@ -69,11 +78,11 @@ class UserCollection(Resource):
 class UserItem(Resource):
     def get(self, user):
         body = user.serialize()
-        body["controls"] = {
-            "user:update": {"method": "PUT", "href": url_for("api.useritem", user=user), "title": "Update user", "schema": User.get_schema()},
-            "user:delete": {"method": "DELETE", "href": url_for("api.useritem", user=user), "title": "Delete user"},
-            "collection": {"method": "GET", "href": "/api/users/", "title": "Users collection"}
-        }
+        # body["controls"] = {
+        #     "user:update": {"method": "PUT", "href": url_for("api.useritem", user=user), "title": "Update user", "schema": User.get_schema()},
+        #     "user:delete": {"method": "DELETE", "href": url_for("api.useritem", user=user), "title": "Delete user"},
+        #     "collection": {"method": "GET", "href": "/api/users/", "title": "Users collection"}
+        # }
         return Response(json.dumps(body), status=200, mimetype="application/json")
     
     def put(self, user):
@@ -108,16 +117,15 @@ class UserItem(Resource):
         try:
             db.session.commit()
             logging.info("Database commit successful")
-        except Exception as e:
+        except IntegrityError as e:
             logging.error(f"Database commit failed: {e}")
-            db.session.rollback()
             body = {
                 "error": {
-                    "title": "Database commit failed",
-                    "description": str(e)
+                    "title": "User already exists",
+                    "description": "A user with the username {} already exists.".format(user.username)
                 }
             }
-            return Response(json.dumps(body), status=500, mimetype="application/json")
+            return Response(json.dumps(body), status=409, mimetype="application/json")  
         
         return Response(status=204)
 
