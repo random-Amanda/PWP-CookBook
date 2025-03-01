@@ -22,3 +22,14 @@ class UserConverter(BaseConverter):
 
     def to_url(self, db_user):
         return db_user.username
+
+    
+class IngredientConverter(BaseConverter):
+    def to_python(self, ingredient_name):
+        db_ingredient = Ingredient.query.filter_by(name=ingredient_name).first()
+        if db_ingredient is None:
+            raise NotFound
+        return db_ingredient
+
+    def to_url(self, db_ingredient):
+        return db_ingredient.name

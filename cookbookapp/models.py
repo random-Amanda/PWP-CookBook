@@ -4,6 +4,11 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import event, Engine
 from cookbookapp import db
 
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -140,7 +145,7 @@ class Review(db.Model):
 class Ingredient(db.Model):
     __tablename__ = 'ingredient'
     ingredient_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.Text, nullable=False)
+    name = db.Column(db.Text, nullable=False, unique=True)
     description = db.Column(db.Text)
 
     recipeIngredient = db.relationship('RecipeIngredientQty', back_populates='ingredient')
