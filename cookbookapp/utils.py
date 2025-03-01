@@ -33,3 +33,13 @@ class IngredientConverter(BaseConverter):
 
     def to_url(self, db_ingredient):
         return db_ingredient.name
+
+class RecipeConverter(BaseConverter):
+    def to_python(self, recipe_id):
+        db_recipe = Recipe.query.filter_by(recipe_id=recipe_id).first()
+        if db_recipe is None:
+            raise NotFound
+        return db_recipe
+    
+    def to_url(self, db_recipe):
+        return str(db_recipe.recipe_id)
