@@ -12,3 +12,13 @@ class ReviewConverter(BaseConverter):
 
     def to_url(self, value):
         return str(value)
+    
+class UserConverter(BaseConverter):
+    def to_python(self, username):
+        db_user = User.query.filter_by(username=username).first()
+        if db_user is None:
+            raise NotFound
+        return db_user
+
+    def to_url(self, db_user):
+        return db_user.username
