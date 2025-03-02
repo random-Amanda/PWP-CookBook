@@ -4,7 +4,7 @@ This file contain Converters for urls
 from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
 
-from cookbookapp.models import Review, Ingredient, User, Recipe, RecipeIngredientQty
+from cookbookapp.models import Review, Ingredient, User, Recipe
 
 class ReviewConverter(BaseConverter):
     """
@@ -60,12 +60,12 @@ class RecipeConverter(BaseConverter):
     def to_url(self, value):
         return str(value.recipe_id)
 
-class RecipeIngredientQtyConverter(BaseConverter):
-    def to_python(self, value):
-        db_qty = RecipeIngredientQty.query.filter_by(qty_id=value).first()
-        if db_qty is None:
-            raise NotFound
-        return db_qty
+# class RecipeIngredientQtyConverter(BaseConverter):
+#     def to_python(self, value):
+#         db_qty = RecipeIngredientQty.query.filter_by(qty_id=value).first()
+#         if db_qty is None:
+#             raise NotFound
+#         return db_qty
 
-    def to_url(self, value):
-        return str(value.qty_id)
+#     def to_url(self, value):
+#         return str(value.qty_id)
