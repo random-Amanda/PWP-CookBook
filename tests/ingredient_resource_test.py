@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import tempfile
 import pytest
@@ -9,10 +8,11 @@ from sqlalchemy import event
 from cookbookapp import create_app, db
 from cookbookapp.models import Ingredient, Recipe, RecipeIngredientQty, Review, User
 
-logging.basicConfig(level=logging.INFO)
-
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
+    """
+    Enable foreign key support for SQLite.
+    """
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
@@ -25,19 +25,19 @@ def client():
         "SQLALCHEMY_DATABASE_URI": "sqlite:///" + db_fname,
         "TESTING": True
     }
-    
+
     app = create_app(config)
-    
+
     with app.app_context():
         db.create_all()
         _populate_db()
-        
+
     # app.test_client_class = AuthHeaderClient
     yield app.test_client()
-    
+
     os.close(db_fd)
     os.unlink(db_fname)
-    
+
 def _populate_db():
     for idx, letter in enumerate("AB", start=1):
         user = User(
@@ -91,8 +91,8 @@ def _get_ingredient_json(number=1):
     Creates a valid ingredient JSON object to be used for PUT and POST tests.
     """
     return {
-        "name": "extra-ingredient-{}".format(number),
-        "description": "extra-description-{}".format(number)
+        "name": f"extra-ingredient-{number}",
+        "description": f"extra-description-{number}"
     }
 
 def _get_ingredient_invalid_json(number=1):
@@ -100,15 +100,15 @@ def _get_ingredient_invalid_json(number=1):
     Creates a invalid ingredient JSON object to be used for PUT and POST tests.
     """
     return {
-        "description": "extra-description-{}".format(number)
+        "description": f"extra-description-{number}"
     }
 
-class TestIngredientCollection(object):
+class TestIngredientCollection():
     """
     This class implements tests for each HTTP method in ingredient collection
     resource.
     """
-    
+
     RESOURCE_URL = "/api/ingredients/"
 
     def test_get(self, client):
@@ -118,13 +118,11 @@ class TestIngredientCollection(object):
         present, and the controls work. Also checks that all of the items from
         the DB popluation are present, and their controls.
         """
-        print("===============> ",self.RESOURCE_URL)
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
         assert len(body["items"]) == 2
         for item in body["items"]:
-            print("------> ",item)
             assert "name" in item
             assert "description" in item
 
@@ -134,7 +132,7 @@ class TestIngredientCollection(object):
         also checks that a valid request receives a 201 response with a
         location header that leads into the newly created resource.
         """
-        
+
         valid = _get_ingredient_json()
         invalid = _get_ingredient_invalid_json()
 
@@ -161,16 +159,16 @@ class TestIngredientCollection(object):
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
 
-class TestIngredientItem(object):
+class TestIngredientItem():
     """
     This class implements tests for each HTTP method in ingredient item
     resource.
     """
-    
+
     RESOURCE_URL = "/api/ingredients/ingredient-A/"
     INVALID_URL = "/api/ingredients/non-ingredient-x/"
     MODIFIED_URL = "/api/ingredients/extra-ingredient-1/"
-    
+
     def test_get(self, client):
         """
         Tests the GET method. Checks that the response status code is 200, and
@@ -179,7 +177,6 @@ class TestIngredientItem(object):
         the DB popluation are present, and their controls.
         """
 
-        print("===============> ",self.RESOURCE_URL)
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
@@ -188,14 +185,14 @@ class TestIngredientItem(object):
 
         resp = client.get(self.INVALID_URL)
         assert resp.status_code == 404
-        
+
     def test_put(self, client):
         """
         Tests the PUT method. Checks all of the possible error codes, and also
         checks that a valid request receives a 204 response. Also tests that
         when name is changed, the ingredient can be found from its new URI.
         """
-        
+
         valid = _get_ingredient_json()
         invalid = _get_ingredient_invalid_json()
 

@@ -2,20 +2,20 @@ import json
 from flask import Response, request, url_for
 from flask_restful import Resource
 from jsonschema import ValidationError, validate
-from cookbookapp import db
 from sqlalchemy.exc import IntegrityError
+from cookbookapp import db
 from cookbookapp.models import Ingredient
 
 
-class IngreientCollection(Resource):
+class IngredientCollection(Resource):
     def get(self):
         body = {"items": []}
-        body["self_uri"] = url_for("api.ingreientcollection")
+        body["self_uri"] = url_for("api.ingredientcollection")
         body["name"] = "Ingredient Collection"
         body["description"] = "A collection of ingredients"
 
         body["controls"] = {
-            "create_ingredient": {"method": "POST", "href": url_for("api.ingreientcollection"), "title": "Create a new ingredient", "schema": Ingredient.get_schema()},
+            "create_ingredient": {"method": "POST", "href": url_for("api.ingredientcollection"), "title": "Create a new ingredient", "schema": Ingredient.get_schema()},
             "search_ingredient": {"method": "GET", "href": "/api/ingredients/search", "title": "Search for ingredients"} # not implemented
         }
 
@@ -79,7 +79,7 @@ class IngredientItem(Resource):
         body["controls"] = {
             "ingredient:update": {"method": "PUT", "href": url_for("api.ingredientitem", ingredient=ingredient), "title": "Update ingredient", "schema": Ingredient.get_schema()},
             "ingredient:delete": {"method": "DELETE", "href": url_for("api.ingredientitem", ingredient=ingredient), "title": "Delete ingredient"},
-            "collection": {"method": "GET", "href": url_for("api.ingreientcollection"), "title": "Ingredients collection"},
+            "collection": {"method": "GET", "href": url_for("api.ingredientcollection"), "title": "Ingredients collection"},
         }
 
         return Response(json.dumps(body), status=200, mimetype="application/json")
