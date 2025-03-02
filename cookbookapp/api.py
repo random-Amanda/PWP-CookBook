@@ -1,3 +1,6 @@
+"""
+This module sets up the API endpoints for the cookbook application.
+"""
 from flask import Blueprint
 from flask_restful import Api
 
