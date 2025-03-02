@@ -96,7 +96,26 @@ class Recipe(db.Model):
             "steps": self.steps,
             "preparation_time": self.preparation_time,
             "cooking_time": self.cooking_time,
-            "serving": self.serving}
+            "serving": self.serving,
+            "recipeIngredient": [
+                {
+                    "ingredient_id": ing.ingredient_id,
+                    "ingredient" : ing.ingredient.name,
+                    "qty": ing.qty,
+                    "metric": ing.metric
+                }
+                for ing in  self.recipeIngredient
+            ],
+            "reviews": [
+                {
+                    "review_id": rev.review_id,
+                    "rating": rev.rating,
+                    "feedback": rev.feedback,
+                    "user": rev.user.username
+                }
+                for rev in  self.reviews
+            ]
+            }
 
     def deserialize(self):
         """
@@ -280,7 +299,7 @@ class RecipeIngredientQty(db.Model):
                 "qty": {"type": "number"},
                 "metric": {"type": "string"}
             },
-            "required": ["recipe_id", "ingredient_id", "qty", "metric"]
+            "required": ["qty", "metric"]
         }
 
 @click.command("init-db")
