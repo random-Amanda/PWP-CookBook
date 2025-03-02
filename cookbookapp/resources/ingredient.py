@@ -1,5 +1,5 @@
 """
-This module contains the resources for handling ingredient-related API endpoints.
+This module contains the resources for handling ingredient related API endpoints.
 """
 import json
 from flask import Response, request, url_for
@@ -19,24 +19,9 @@ class IngredientCollection(Resource):
         Handle GET requests to retrieve all ingredients.
         """
         body = {"items": []}
-        # body["self_uri"] = url_for("api.ingredientcollection")
-        # body["name"] = "Ingredient Collection"
-        # body["description"] = "A collection of ingredients"
-        # body["controls"] = {
-        #     "create_ingredient": {"method": "POST", "href": url_for("api.ingredientcollection"),
-        #                           "title": "Create a new ingredient",
-        #                           "schema": Ingredient.get_schema()}
-        # }
-
         ingredients = Ingredient.query.all()
         for ingredient in ingredients:
-
             item = ingredient.serialize()
-            # item["controls"] = {
-            #     "self": {"method": "GET", "href": url_for(
-            #         "api.ingredientitem",ingredient=ingredient), "title": "Ingredient details"}
-            # }
-
             body["items"].append(item)
 
         return Response(json.dumps(body), status=200, mimetype="application/json")
@@ -95,16 +80,6 @@ class IngredientItem(Resource):
         Handle GET requests to retrieve a single ingredient.
         """
         body = ingredient.serialize()
-        # body["controls"] = {
-        #     "ingredient:update": {"method": "PUT", "href": url_for(
-        #         "api.ingredientitem", ingredient=ingredient), "title": "Update ingredient",
-        #         "schema": Ingredient.get_schema()},
-        #     "ingredient:delete": {"method": "DELETE", "href": url_for(
-        #         "api.ingredientitem", ingredient=ingredient), "title": "Delete ingredient"},
-        #     "collection": {"method": "GET", "href": url_for("api.ingredientcollection"),
-        #                    "title": "Ingredients collection"},
-        # }
-
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
     def put(self, ingredient):

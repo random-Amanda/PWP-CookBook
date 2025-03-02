@@ -1,43 +1,40 @@
+
+"""
+This module contains the resources for handling recipe related API endpoints.
+"""
 import json
 import logging
 from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
-from cookbookapp import db
 from sqlalchemy.exc import IntegrityError
+from cookbookapp import db
 from cookbookapp.models import Recipe
 
 logging.basicConfig(level=logging.INFO)
 
 class RecipeCollection(Resource):
+    """
+    Represents a collection of recipe.
+    """
     def get(self):
+        """
+        Handle GET requests to retrieve all recipe.
+        """
         body = {"items": []}
-        # body["self_uri"] = url_for("api.recipecollection")
-        # body["name"] = "Recipe Collection"
-        # body["description"] = "A collection of recipes"
-
-        # body["controls"] = {
-        #     "create_recipe": {"method": "POST", "href": url_for("api.recipecollection"), "title": "Create a new recipe", "schema": Recipe.get_schema()},
-        #     "search_recipe": {"method": "GET", "href": "/api/recipes/search", "title": "Search for recipes"} # not implemented
-        # }
-
         recipes = Recipe.query.all()
         for recipe in recipes:
-
             item = recipe.serialize()
-            # item["controls"] = {
-            #     "self": {"method": "GET", "href": url_for("api.recipeitem", recipe=recipe.recipe_id), "title": "Recipe details"},
-            #     "update": {"method": "PUT", "href": url_for("api.recipeitem", recipe=recipe.recipe_id), "title": "Update recipe", "schema": Recipe.get_schema()}, # for refference
-            #     "delete": {"method": "DELETE", "href": url_for("api.recipeitem", recipe=recipe.recipe_id), "title": "Delete recipe"} # for refference
-            # }
-
             body["items"].append(item)
 
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
     def post(self):
+        """
+        Handle POST requests to create a new recipe.
+        """
         if not request.is_json:
-            body = { 
+            body = {
                 "error": {
                     "title": "Unsupported media type",
                     "description": "Requests must be JSON"
@@ -81,28 +78,31 @@ class RecipeCollection(Resource):
         return Response(status=201, headers={
             "Location": url_for("api.recipeitem", recipe=recipe)
         })
-    
-class RecipeItem(Resource):
-    def get(self, recipe):
-        body = recipe.serialize()
-        # body["controls"] = {
-        #     "recipe:update": {"method": "PUT", "href": url_for("api.recipeitem", recipe=recipe.recipe_id), "title": "Update recipe", "schema": Recipe.get_schema()},
-        #     "recipe:delete": {"method": "DELETE", "href": url_for("api.recipeitem", recipe=recipe.recipe_id), "title": "Delete recipe"},
-        #     "collection": {"method": "GET", "href": url_for("api.recipecollection"), "title": "Recipes collection"}
-        # }
 
+class RecipeItem(Resource):
+    """
+    Represents a single recipe.
+    """
+    def get(self, recipe):
+        """
+        Handle GET requests to retrieve a single recipe.
+        """
+        body = recipe.serialize()
         return Response(json.dumps(body), status=200, mimetype="application/json")
-    
+
     def put(self, recipe):
+        """
+        Handle GET requests to retrieve a single recipe.
+        """
         if not request.is_json:
-            body = { 
+            body = {
                 "error": {
                     "title": "Unsupported media type",
                     "description": "Requests must be JSON"
                 }
             }
             return Response(json.dumps(body), status=415, mimetype="application/json")
-        
+
         try:
             validate(request.json, Recipe.get_schema())
         except ValidationError as e:
@@ -113,7 +113,7 @@ class RecipeItem(Resource):
                 }
             }
             return Response(json.dumps(body), status=400, mimetype="application/json")
-        
+
         #recipe.user_id = request.json["user_id"]
         recipe.title = request.json["title"]
         recipe.description = request.json["description"]
@@ -132,11 +132,5 @@ class RecipeItem(Resource):
                 }
             }
             return Response(json.dumps(body), status=409, mimetype="application/json")
-        
-        return Response(status=204, mimetype="application/json")
 
-    def delete(self, recipe):
-        db.session.delete(recipe)
-        db.session.commit()
-        return {"message": "Recipe deleted"}, 204
-    
+        return Response(status=204, mimetype="application/json")

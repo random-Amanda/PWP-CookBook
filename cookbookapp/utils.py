@@ -59,13 +59,13 @@ class RecipeConverter(BaseConverter):
 
     def to_url(self, value):
         return str(value.recipe_id)
-    
-class IngredientQtyConverter(BaseConverter):
+
+class RecipeIngredientQtyConverter(BaseConverter):
     def to_python(self, value):
         db_qty = RecipeIngredientQty.query.filter_by(qty_id=value).first()
         if db_qty is None:
             raise NotFound
         return db_qty
-    
+
     def to_url(self, value):
         return str(value.qty_id)

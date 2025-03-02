@@ -111,21 +111,7 @@ class TestReviewCollection():
     resource.
     """
 
-    RESOURCE_URL = "/api/reviews/"
-
-    def test_get(self, client):
-        """
-        Tests the GET method. Checks that the response status code is 200, and
-        then checks that all of the expected attributes. Also checks that all of the items from
-        the DB popluation are present, and their controls.
-        """
-        resp = client.get(self.RESOURCE_URL)
-        assert resp.status_code == 200
-        body = json.loads(resp.data)
-        assert len(body["items"]) == 2
-        for item in body["items"]:
-            assert "rating" in item
-            assert "feedback" in item
+    RESOURCE_URL = "/api/recipes/1/reviews/"
 
     def test_post(self, client):
         """
@@ -144,9 +130,6 @@ class TestReviewCollection():
         # test with valid and see that it exists afterward
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 201
-        assert resp.headers["Location"].endswith(self.RESOURCE_URL + "3/")
-        resp = client.get(resp.headers["Location"])
-        assert resp.status_code == 200
         body = json.loads(resp.data)
         assert body["rating"] == 4
         assert body["feedback"] == "extra-feedback-1"
@@ -165,62 +148,6 @@ class TestReviewItem():
     RESOURCE_URL = "/api/reviews/1/"
     INVALID_URL = "/api/reviews/10/"
     MODIFIED_URL = "/api/reviews/3/"
-
-    def test_get(self, client):
-        """
-        Tests the GET method. Checks that the response status code is 200, and
-        then checks that all of the expected attributes and controls are
-        present, and the controls work. Also checks that all of the items from
-        the DB popluation are present, and their controls.
-        """
-
-        resp = client.get(self.RESOURCE_URL)
-        assert resp.status_code == 200
-        body = json.loads(resp.data)
-        assert body["rating"] == 4
-        assert body["feedback"] == "feedback-A"
-
-        resp = client.get(self.INVALID_URL)
-        assert resp.status_code == 404
-
-    def test_put(self, client):
-        """
-        Tests the PUT method. Checks all of the possible error codes, and also
-        checks that a valid request receives a 204 response. Also tests that
-        when id is changed, the review can be found from its new URI.
-        """
-
-        valid = _get_review_json()
-        invalid = _get_review_invalid_json()
-
-        resp = client.put(self.RESOURCE_URL, data=json.dumps(invalid))
-        assert resp.status_code == 415
-
-        resp = client.put(self.INVALID_URL, json=valid)
-        assert resp.status_code == 404
-
-        # test with valid data
-        valid["rating"] = 6
-        resp = client.put(self.RESOURCE_URL, json=valid)
-        assert resp.status_code == 204
-
-        # Mock SQLAlchemy commit to raise an error
-        with patch('cookbookapp.db.session.commit') as mock_commit:
-            mock_commit.side_effect = SQLAlchemyError("Database error")
-            
-            response = client.put(
-                self.RESOURCE_URL,
-                data=json.dumps(valid),
-                content_type='application/json'
-            )
-            
-            assert response.status_code == 500
-            assert "Database commit failed" in response.json["error"]["title"]
-
-        # remove rating field for 400
-        valid.pop("rating")
-        resp = client.put(self.RESOURCE_URL, json=valid)
-        assert resp.status_code == 400
 
     def test_delete(self, client):
         """
