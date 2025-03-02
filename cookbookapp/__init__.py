@@ -29,7 +29,7 @@ def create_app(test_config=None):
 
     from . import models
     from . import api
-    from cookbookapp.utils import ReviewConverter, IngredientConverter
+    from cookbookapp.utils import ReviewConverter, UserConverter, IngredientConverter, RecipeConverter
 
     app.cli.add_command(models.init_db_command)
     app.cli.add_command(models.drop_db_command)
@@ -37,8 +37,10 @@ def create_app(test_config=None):
     app.cli.add_command(models.clear_test_data_command)
 
     app.url_map.converters["review"] = ReviewConverter
+    app.url_map.converters["user"] = UserConverter
     app.url_map.converters["ingredient"] = IngredientConverter
-
+    app.url_map.converters["recipe"] = RecipeConverter
+    
     app.register_blueprint(api.api_bp)
 
     # with app.app_context():  # Create tables inside the app context

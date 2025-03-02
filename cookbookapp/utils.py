@@ -4,7 +4,7 @@ This file contain Converters for urls
 from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
 
-from cookbookapp.models import Review, Ingredient
+from cookbookapp.models import Review, Ingredient, User, Recipe
 
 class ReviewConverter(BaseConverter):
     """
@@ -18,6 +18,19 @@ class ReviewConverter(BaseConverter):
 
     def to_url(self, value):
         return str(value)
+
+class UserConverter(BaseConverter):
+    """
+    Represents the UserConverter.
+    """
+    def to_python(self, value):
+        db_user = User.query.filter_by(username=value).first()
+        if db_user is None:
+            raise NotFound
+        return db_user
+
+    def to_url(self, value):
+        return value.username
 
 class IngredientConverter(BaseConverter):
     """
@@ -33,3 +46,16 @@ class IngredientConverter(BaseConverter):
         if isinstance(value, str):
             return value
         return value.name
+
+class RecipeConverter(BaseConverter):
+    """
+    Represents the RecipeConverter.
+    """
+    def to_python(self, value):
+        db_recipe = Recipe.query.filter_by(recipe_id=value).first()
+        if db_recipe is None:
+            raise NotFound
+        return db_recipe
+
+    def to_url(self, value):
+        return str(value.recipe_id)

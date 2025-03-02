@@ -33,7 +33,8 @@ class User(db.Model):
         return {
             "user_id": self.user_id,
             "email": self.email,
-            "username": self.username
+            "username": self.username,
+            "password": self.password
         }
 
     def deserialize(self):
