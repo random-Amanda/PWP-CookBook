@@ -49,6 +49,8 @@ def client():
     os.unlink(db_fname)
 
 def _populate_db():
+    """
+    Populate the database with test data."""
     for idx, letter in enumerate("AB", start=1):
         user = User(
             username=f"user{idx}",
