@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
-from cookbookapp.config import Config
+# from cookbookapp.config import Config
 
 db = SQLAlchemy()
 
@@ -14,17 +14,17 @@ def create_app(test_config=None):
         SQLALCHEMY_TRACK_MODIFICATIONS=False
     )
     print(app.instance_path)
-    
-    # if test_config is None:
-    #     app.config.from_pyfile("config.py", silent=True)
-    # else:
-    #     app.config.from_mapping(test_config)
-        
-    # try:
-    #     os.makedirs(app.instance_path)
-    # except OSError:
-    #     pass
-    
+
+    if test_config is None:
+        app.config.from_pyfile("config.py", silent=True)
+    else:
+        app.config.from_mapping(test_config)
+
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        pass
+
     db.init_app(app)
 
     from . import models
@@ -45,5 +45,5 @@ def create_app(test_config=None):
 
     # with app.app_context():  # Create tables inside the app context
     #     db.create_all()
-    
+
     return app

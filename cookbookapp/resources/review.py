@@ -3,8 +3,8 @@ import logging
 from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
-from cookbookapp import db
 from sqlalchemy.exc import IntegrityError
+from cookbookapp import db
 from cookbookapp.models import Review
 
 logging.basicConfig(level=logging.INFO)
