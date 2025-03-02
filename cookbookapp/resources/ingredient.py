@@ -70,7 +70,7 @@ class IngreientCollection(Resource):
             return Response(json.dumps(body), status=409, mimetype="application/json")
         
         return Response(status=201, headers={
-            "Location": url_for("api.ingredientitem", ingredient=ingredient)
+            "Location": url_for("api.ingredientitem", ingredient=ingredient.name)
         })
     
 class IngredientItem(Resource):

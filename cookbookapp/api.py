@@ -9,6 +9,6 @@ api = Api(api_bp)
 
 # Add the resources to the API
 api.add_resource(ReviewCollection, "/reviews/")
-api.add_resource(ReviewItem, "/reviews/<review:review>")
+api.add_resource(ReviewItem, "/reviews/<review:review>/")
 api.add_resource(IngreientCollection, "/ingredients/")
-api.add_resource(IngredientItem, "/ingredients/<ingredient:ingredient>")
+api.add_resource(IngredientItem, "/ingredients/<ingredient:ingredient>/")

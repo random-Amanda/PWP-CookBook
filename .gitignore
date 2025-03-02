@@ -8,3 +8,9 @@ __pycache__/
 
 # Environment variables
 .env
+
+# Database files
+*.db
+*.db*
+
+.coverage
