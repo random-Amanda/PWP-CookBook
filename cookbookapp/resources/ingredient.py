@@ -62,7 +62,7 @@ class IngredientCollection(Resource):
             body = {
                 "error": {
                     "title": "Already exists",
-                    "description": f"Ingredient name '{request.json["name"]}' is already exists."
+                    "description": f"Ingredient name '{request.json['name']}' is already exists."
                 }
             }
             return Response(json.dumps(body), status=409, mimetype="application/json")
@@ -115,7 +115,7 @@ class IngredientItem(Resource):
             body = {
                 "error": {
                     "title": "Already exists",
-                    "description": f"Ingredient name '{request.json["name"]}' is already exists."
+                    "description": f"Ingredient name '{request.json['name']}' is already exists."
                 }
             }
             return Response(json.dumps(body), status=409, mimetype="application/json")
