@@ -35,8 +35,8 @@ class User(db.Model):
         """
         return {
             "user_id": self.user_id,
-            "email": self.email,
             "username": self.username,
+            "email": self.email,
             "password": self.password
         }
 
@@ -45,8 +45,8 @@ class User(db.Model):
         Deserialize a dictionary to a user object.
         """
         return User(
-            email=self.get("email"),
             username=self.get("username"),
+            email=self.get("email"),
             password=self.get("password")
         )
 
@@ -58,11 +58,11 @@ class User(db.Model):
         return {
             "type": "object",
             "properties": {
-                "email": {"type": "string"},
                 "username": {"type": "string"},
+                "email": {"type": "string"},
                 "password": {"type": "string"}
             },
-            "required": ["email", "username", "password"]
+            "required": ["username", "email", "password"]
         }
 
 class Recipe(db.Model):
