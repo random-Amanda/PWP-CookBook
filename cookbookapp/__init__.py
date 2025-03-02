@@ -1,6 +1,3 @@
-"""
-This module initializes the Flask application and sets up the database and API.
-"""
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -10,15 +7,6 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 def create_app(test_config=None):
-    """
-    Create and configure the Flask application.
-    
-    Args:
-        test_config (dict, optional): Configuration dictionary for testing. Defaults to None.
-    
-    Returns:
-        Flask: The configured Flask application.
-    """
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY="dev",
@@ -41,7 +29,7 @@ def create_app(test_config=None):
 
     from . import models
     from . import api
-    from cookbookapp.utils import ReviewConverter, UserConverter, IngredientConverter, RecipeConverter
+    from cookbookapp.utils import ReviewConverter, UserConverter, IngredientConverter, RecipeConverter, IngredientQtyConverter
 
     app.cli.add_command(models.init_db_command)
     app.cli.add_command(models.drop_db_command)
@@ -52,7 +40,8 @@ def create_app(test_config=None):
     app.url_map.converters["user"] = UserConverter
     app.url_map.converters["ingredient"] = IngredientConverter
     app.url_map.converters["recipe"] = RecipeConverter
-
+    app.url_map.converters["ingredientqty"] = IngredientQtyConverter
+    
     app.register_blueprint(api.api_bp)
 
     # with app.app_context():  # Create tables inside the app context
