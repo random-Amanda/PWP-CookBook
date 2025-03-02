@@ -1,3 +1,6 @@
+"""
+Test the UserCollection and UserItem resources.
+"""
 import json
 import os
 import tempfile
@@ -20,6 +23,8 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 @pytest.fixture
 def client():
+    """
+    Return a test client for the app."""
     db_fd, db_fname = tempfile.mkstemp()
     config = {
         "SQLALCHEMY_DATABASE_URI": "sqlite:///" + db_fname,
@@ -46,9 +51,9 @@ def client():
 def _populate_db():
     for idx, letter in enumerate("AB", start=1):
         user = User(
-            email=f"user-{idx}@example.com",
-            username=f"user-{idx}",
-            password="password"
+            username=f"user{idx}",
+            email=f"user{idx}@example.com",
+            password=f"password{idx}"
         )
         db.session.add(user)
 
@@ -91,148 +96,147 @@ def _populate_db():
 
     db.session.commit()
 
-def _get_ingredient_json(number=1):
+def _get_user_json(number=1):
     """
-    Creates a valid ingredient JSON object to be used for PUT and POST tests.
-    """
-    return {
-        "name": f"extra-ingredient-{number}",
-        "description": f"extra-description-{number}"
-    }
-
-def _get_ingredient_invalid_json(number=1):
-    """
-    Creates a invalid ingredient JSON object to be used for PUT and POST tests.
+    Return a JSON representation of a user.
     """
     return {
-        "description": f"extra-description-{number}"
+        "username": f"test-user{number}",
+        "email": f"test-user{number}@test.com",
+        "password": f"test-password{number}"
     }
 
-class TestIngredientCollection():
+def _get_user_invalid_json(number=1):
     """
-    This class implements tests for each HTTP method in ingredient collection
-    resource.
+    Return an invalid JSON representation of a user.
+    """
+    return {
+        "email": f"test-user{number}@test.com",
+        "password": f"test-password{number}"
+    }
+
+class TestUserCollection:
+    """
+    Test the UserCollection resource.
     """
 
-    RESOURCE_URL = "/api/ingredients/"
+    RESOURCE_URL = "/api/users/"
 
     def test_get(self, client):
         """
-        Tests the GET method. Checks that the response status code is 200, and
-        then checks that all of the expected attributes and controls are
-        present, and the controls work. Also checks that all of the items from
-        the DB popluation are present, and their controls.
+        Test the GET method of the UserCollection resource.
         """
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
-        body = json.loads(resp.data)
-        assert len(body["items"]) == 2
-        for item in body["items"]:
-            assert "name" in item
-            assert "description" in item
+
+        data = json.loads(resp.data)
+        assert len(data["items"]) == 2
+        for item in data["items"]:
+            assert "username" in item
+            assert "email" in item
+            assert "password" in item
 
     def test_post(self, client):
         """
-        Tests the POST method. Checks all of the possible error codes, and
-        also checks that a valid request receives a 201 response with a
-        location header that leads into the newly created resource.
+        Test the POST method of the UserCollection resource.
         """
-
-        valid = _get_ingredient_json()
-        invalid = _get_ingredient_invalid_json()
+        valid = _get_user_json()
+        invalid = _get_user_invalid_json()
 
         # test with wrong content type
         resp = client.post(self.RESOURCE_URL, data=json.dumps(invalid))
         assert resp.status_code == 415
 
-        # test with valid and see that it exists afterward
+        # test with valid and see that it exists afterwards
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 201
-        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["name"] + "/")
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["username"] + "/")
+
         resp = client.get(resp.headers["Location"])
         assert resp.status_code == 200
+
         body = json.loads(resp.data)
-        assert body["name"] == "extra-ingredient-1"
-        assert body["description"] == "extra-description-1"
+        assert body["username"] == "test-user1"
+        assert body["email"] == "test-user1@test.com"
+        assert body["password"] == "test-password1"
 
         # send same data again for 409
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
 
         # remove name field for 400
-        valid.pop("name")
+        valid.pop("username")
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
 
-class TestIngredientItem():
+class TestUserItem:
     """
-    This class implements tests for each HTTP method in ingredient item
-    resource.
+    Test the UserItem resource.
     """
-
-    RESOURCE_URL = "/api/ingredients/ingredient-A/"
-    INVALID_URL = "/api/ingredients/non-ingredient-x/"
-    MODIFIED_URL = "/api/ingredients/extra-ingredient-1/"
+    RESOURCE_URL = "/api/users/user1/"
+    INVALID_URL = "api/users/non-user-x/"
+    MODIFIED_URL = "/api/users/extra-user2/"
 
     def test_get(self, client):
         """
-        Tests the GET method. Checks that the response status code is 200, and
-        then checks that all of the expected attributes and controls are
-        present, and the controls work. Also checks that all of the items from
-        the DB popluation are present, and their controls.
+        Test the GET method of the UserItem resource.
         """
-
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
+
         body = json.loads(resp.data)
-        assert body["name"] == "ingredient-A"
-        assert body["description"] == "description-A"
+        assert body["username"] == "user1"
+        assert body["email"] == "user1@example.com"
+        assert body["password"] == "password1"
 
         resp = client.get(self.INVALID_URL)
         assert resp.status_code == 404
 
     def test_put(self, client):
         """
-        Tests the PUT method. Checks all of the possible error codes, and also
-        checks that a valid request receives a 204 response. Also tests that
-        when name is changed, the ingredient can be found from its new URI.
+        Test the PUT method of the UserItem resource.
         """
+        valid = _get_user_json()
+        invalid = _get_user_invalid_json()
 
-        valid = _get_ingredient_json()
-        invalid = _get_ingredient_invalid_json()
-
+        # test with wrong content type
         resp = client.put(self.RESOURCE_URL, data=json.dumps(invalid))
         assert resp.status_code == 415
 
+        # test with invalid JSON
         resp = client.put(self.INVALID_URL, json=valid)
         assert resp.status_code == 404
 
-        # test with another ingredient's name
-        valid["name"] = "ingredient-B"
+        #test with another user's username
+        valid["username"] = "user2"
+        valid["email"] = "testuser2@example.com"
+        valid["password"] = "testpassword2"
+        print(self.RESOURCE_URL)
+        print(valid)
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
 
         # test with valid data
-        valid["name"] = "ingredient-A"
+        valid["username"] = "user1"
+        valid["email"] = "user1@example.com"
+        valid["password"] = "password1"
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 204
 
-        # remove name field for 400
-        valid.pop("name")
+        # remove username field for 400
+        valid.pop("username")
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
 
     def test_delete(self, client):
         """
-        Tests the DELETE method. Checks that a valid request reveives 204
-        response and that trying to GET the ingredient afterwards results in 404.
-        Also checks that trying to delete a ingredient that doesn't exist results
-        in 404.
+        Test the DELETE method of the UserItem resource.
         """
-
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
+
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 404
+
         resp = client.delete(self.INVALID_URL)
         assert resp.status_code == 404

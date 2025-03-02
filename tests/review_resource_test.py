@@ -37,6 +37,11 @@ def client():
     # app.test_client_class = AuthHeaderClient
     yield app.test_client()
 
+    # Ensure the database connection is closed
+    with app.app_context():
+        db.session.remove()
+        db.engine.dispose()
+
     os.close(db_fd)
     os.unlink(db_fname)
 
