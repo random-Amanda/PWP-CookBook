@@ -40,15 +40,15 @@ class User(db.Model):
             "password": self.password
         }
 
-    def deserialize(self):
-        """
-        Deserialize a dictionary to a user object.
-        """
-        return User(
-            username=self.get("username"),
-            email=self.get("email"),
-            password=self.get("password")
-        )
+    # def deserialize(self):
+    #     """
+    #     Deserialize a dictionary to a user object.
+    #     """
+    #     return User(
+    #         username=self.get("username"),
+    #         email=self.get("email"),
+    #         password=self.get("password")
+    #     )
 
     @staticmethod
     def get_schema():
@@ -117,19 +117,19 @@ class Recipe(db.Model):
             ]
             }
 
-    def deserialize(self):
-        """
-        Deserialize a dictionary to a recipe object.
-        """
-        return Recipe(
-            user_id=self.get("user_id"),
-            title=self.get("title"),
-            description=self.get("description"),
-            steps=self.get("steps"),
-            preparation_time=self.get("preparation_time"),
-            cooking_time=self.get("cooking_time"),
-            serving=self.get("serving")
-        )
+    # def deserialize(self):
+    #     """
+    #     Deserialize a dictionary to a recipe object.
+    #     """
+    #     return Recipe(
+    #         user_id=self.get("user_id"),
+    #         title=self.get("title"),
+    #         description=self.get("description"),
+    #         steps=self.get("steps"),
+    #         preparation_time=self.get("preparation_time"),
+    #         cooking_time=self.get("cooking_time"),
+    #         serving=self.get("serving")
+    #     )
 
     @staticmethod
     def get_schema():
@@ -177,15 +177,15 @@ class Review(db.Model):
             "rating": self.rating,
             "feedback": self.feedback}
 
-    def deserialize(self):
-        """
-        Deserialize a dictionary to a review object.
-        """
-        return Review(
-            user_id=self.get("user_id"),
-            recipe_id=self.get("recipe_id"),
-            rating=self.get("rating"),
-            feedback=self.get("feedback"))
+    # def deserialize(self):
+    #     """
+    #     Deserialize a dictionary to a review object.
+    #     """
+    #     return Review(
+    #         user_id=self.get("user_id"),
+    #         recipe_id=self.get("recipe_id"),
+    #         rating=self.get("rating"),
+    #         feedback=self.get("feedback"))
 
     @staticmethod
     def get_schema():
@@ -224,14 +224,14 @@ class Ingredient(db.Model):
             "description": self.description
         }
 
-    def deserialize(self):
-        """
-        Deserialize a dictionary to an ingredient object.
-        """
-        return Ingredient(
-            name=self.get("name"),
-            description=self.get("description")
-        )
+    # def deserialize(self):
+    #     """
+    #     Deserialize a dictionary to an ingredient object.
+    #     """
+    #     return Ingredient(
+    #         name=self.get("name"),
+    #         description=self.get("description")
+    #     )
 
     @staticmethod
     def get_schema():
@@ -275,16 +275,16 @@ class RecipeIngredientQty(db.Model):
             'metric': self.metric
         }
 
-    def deserialize(self):
-        """
-        Deserialize a dictionary to a recipe ingredient quantity object.
-        """
-        return RecipeIngredientQty(
-            recipe_id=self.get("recipe_id"),
-            ingredient_id=self.get("ingredient_id"),
-            qty=self.get("qty"),
-            metric=self.get("metric")
-        )
+    # def deserialize(self):
+    #     """
+    #     Deserialize a dictionary to a recipe ingredient quantity object.
+    #     """
+    #     return RecipeIngredientQty(
+    #         recipe_id=self.get("recipe_id"),
+    #         ingredient_id=self.get("ingredient_id"),
+    #         qty=self.get("qty"),
+    #         metric=self.get("metric")
+    #     )
 
     @staticmethod
     def get_schema():

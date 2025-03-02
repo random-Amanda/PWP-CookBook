@@ -64,16 +64,16 @@ class RecipeCollection(Resource):
         )
 
         db.session.add(recipe)
-        try:
-            db.session.commit()
-        except IntegrityError as e:
-            body = {
-                "error": {
-                    "title": "Integrity Error",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=409, mimetype="application/json")
+        # try:
+        db.session.commit()
+        # except Exception as e:
+        #     body = {
+        #         "error": {
+        #             "title": "Error",
+        #             "description": str(e)
+        #         }
+        #     }
+        #     return Response(json.dumps(body), status=409, mimetype="application/json")
 
         return Response(status=201, headers={
             "Location": url_for("api.recipeitem", recipe=recipe)
@@ -122,15 +122,15 @@ class RecipeItem(Resource):
         recipe.cooking_time = request.json["cooking_time"]
         recipe.serving = request.json["serving"]
 
-        try:
-            db.session.commit()
-        except IntegrityError as e:
-            body = {
-                "error": {
-                    "title": "Integrity Error",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=409, mimetype="application/json")
+        # try:
+        db.session.commit()
+        # except IntegrityError as e:
+        #     body = {
+        #         "error": {
+        #             "title": "Integrity Error",
+        #             "description": str(e)
+        #         }
+        #     }
+        #     return Response(json.dumps(body), status=409, mimetype="application/json")
 
         return Response(status=204, mimetype="application/json")

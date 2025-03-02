@@ -47,21 +47,10 @@ class RecipeIngredientQtyCollection(Resource):
             metric=request.get_json().get("metric", "g")
         )
 
-        try:
-            db.session.add(ingredientqty)
-            db.session.commit()
-        except IntegrityError:
-            body = {
-                "error": {
-                    "title": "Integrity Error",
-                    "description": "Recipe Ingredient Quantity already exists"
-                }
-            }
-            return Response(json.dumps(body), status=409, mimetype="application/json")
+        db.session.add(ingredientqty)
+        db.session.commit()
 
-        return Response(status=201, headers={
-            "Location": url_for("api.recipeingredientqtyitem", ingredientqty=ingredientqty)
-        })
+        return Response(status=201)
 
 class RecipeIngredientQtyItem(Resource):
     """
@@ -92,27 +81,11 @@ class RecipeIngredientQtyItem(Resource):
             return Response(json.dumps(body), status=400, mimetype="application/json")
         ingredientqty = RecipeIngredientQty.query.filter_by(
             recipe_id=recipe.recipe_id ,ingredient_id=ingredient.ingredient_id).first()
-        if not ingredientqty:
-            body = {
-                "error": {
-                    "title": "Not Found",
-                    "description": "Recipe Ingredient Quantity not found"
-                }
-            }
-            return Response(json.dumps(body), status=404, mimetype="application/json")
+
         ingredientqty.qty = request.json["qty"]
         ingredientqty.metric = request.json["metric"]
 
-        try:
-            db.session.commit()
-        except IntegrityError as e:
-            body = {
-                "error": {
-                    "title": "Integrity Error",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=409, mimetype="application/json")
+        db.session.commit()
 
         return Response(status=204)
 
