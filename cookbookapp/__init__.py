@@ -1,10 +1,15 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_caching import Cache
 
 # from cookbookapp.config import Config
 
 db = SQLAlchemy()
+cache = Cache(config={
+    'CACHE_TYPE': 'simple',  
+    'CACHE_DEFAULT_TIMEOUT': 300 
+})
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -26,6 +31,7 @@ def create_app(test_config=None):
         pass
 
     db.init_app(app)
+    cache.init_app(app)
 
     from . import models
     from . import api

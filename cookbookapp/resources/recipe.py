@@ -1,4 +1,3 @@
-
 """
 This module contains the resources for handling recipe related API endpoints.
 """
@@ -8,7 +7,7 @@ from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
-from cookbookapp import db
+from cookbookapp import db, cache
 from cookbookapp.models import Recipe
 
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +16,7 @@ class RecipeCollection(Resource):
     """
     Represents a collection of recipe.
     """
+    @cache.cached(timeout=300, key_prefix='recipes_all')
     def get(self):
         """
         Handle GET requests to retrieve all recipe.
@@ -64,16 +64,9 @@ class RecipeCollection(Resource):
         )
 
         db.session.add(recipe)
-        # try:
+
         db.session.commit()
-        # except Exception as e:
-        #     body = {
-        #         "error": {
-        #             "title": "Error",
-        #             "description": str(e)
-        #         }
-        #     }
-        #     return Response(json.dumps(body), status=409, mimetype="application/json")
+        cache.delete('recipes_all')
 
         return Response(status=201, headers={
             "Location": url_for("api.recipeitem", recipe=recipe)
@@ -92,7 +85,7 @@ class RecipeItem(Resource):
 
     def put(self, recipe):
         """
-        Handle GET requests to retrieve a single recipe.
+        Handle PUT requests to update a recipe.
         """
         if not request.is_json:
             body = {
@@ -124,13 +117,6 @@ class RecipeItem(Resource):
 
         # try:
         db.session.commit()
-        # except IntegrityError as e:
-        #     body = {
-        #         "error": {
-        #             "title": "Integrity Error",
-        #             "description": str(e)
-        #         }
-        #     }
-        #     return Response(json.dumps(body), status=409, mimetype="application/json")
+        cache.delete('recipes_all')
 
         return Response(status=204, mimetype="application/json")

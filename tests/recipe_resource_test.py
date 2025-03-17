@@ -180,6 +180,11 @@ class TestRecipeCollection:
         assert body["serving"] == 3
         assert body["user_id"] == 1
 
+        # remove name field for 400
+        valid.pop("title")
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
+
 class TestRecipeItem:
     """
     Test the RecipeItem resource.
