@@ -8,11 +8,16 @@
 
 __Remember to include all required documentation and HOWTOs, including how to create and populate the database, how to run and test the API, the url to the entrypoint, instructions on how to setup and run the client, instructions on how to setup and run the axiliary service and instructions on how to deploy the api in a production environment__
 
+- Create and activate a python virtual environment
+```bash
+    python -m venv pwpenv
+    source pwpenv/bin/activate
+```
 
-- Install dependencies
+- Install dependencies using requirements.txt file
 
 ```bash
-    pip install Flask Flask-SQLAlchemy pysqlite3
+    pip install -r requirements.txt
 ```
 
 - versions:
@@ -26,7 +31,7 @@ __Remember to include all required documentation and HOWTOs, including how to cr
     python3 app/app.py
 ```
 
-3. Check the created database on sqlite
+#### Check the created database on sqlite
 
 - open the db using sqlite on command prompt
 
@@ -47,3 +52,24 @@ __Remember to include all required documentation and HOWTOs, including how to cr
 ```bash
    sqlite> .schema
 ```
+
+#### Navigate to the cookbookapp directory
+
+- commands for powershell
+```bash
+   $env:FLASK_APP = "cookbookapp"
+   $env:FLASK_ENV = "development" 
+```
+
+#### Testing the API
+
+- Set the python path environment variable to current directory
+```bash
+   $env:PYTHONPATH = (Get-Location).Path
+```
+
+- Run PyTest for each of the test case .py files
+  ```bash
+  pytest tests/recipe_resource_test.py
+  pytest --cov=cookbookapp --cov-report=term-missing
+  ```
