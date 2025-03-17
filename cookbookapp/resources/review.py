@@ -6,8 +6,9 @@ import logging
 from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
-from cookbookapp import db
+from cookbookapp import db, cache
 from cookbookapp.models import Review
+from cookbookapp.resources.recipe import RecipeItem
 
 logging.basicConfig(level=logging.INFO)
 
@@ -49,6 +50,8 @@ class ReviewCollection(Resource):
         db.session.add(review)
         db.session.commit()
 
+        cache.delete('recipes_all')
+
         return Response(status=201, headers={
             "Location": ""
         })
@@ -65,4 +68,7 @@ class ReviewItem(Resource):
         review = Review.query.get_or_404(review.review_id)
         db.session.delete(review)
         db.session.commit()
+
+        cache.delete('recipes_all')
+
         return {"message": "Review deleted"}, 204

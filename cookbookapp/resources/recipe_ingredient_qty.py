@@ -7,7 +7,7 @@ from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
-from cookbookapp import db
+from cookbookapp import db, cache
 from cookbookapp.models import RecipeIngredientQty
 
 logging.basicConfig(level=logging.INFO)
@@ -50,6 +50,8 @@ class RecipeIngredientQtyCollection(Resource):
         db.session.add(ingredientqty)
         db.session.commit()
 
+        cache.delete('recipes_all')
+
         return Response(status=201)
 
 class RecipeIngredientQtyItem(Resource):
@@ -86,6 +88,8 @@ class RecipeIngredientQtyItem(Resource):
         ingredientqty.metric = request.json["metric"]
 
         db.session.commit()
+
+        cache.delete('recipes_all')
 
         return Response(status=204)
 
