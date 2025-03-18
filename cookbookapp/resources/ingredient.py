@@ -2,6 +2,7 @@
 This module contains the resources for handling ingredient related API endpoints.
 """
 import json
+from cookbookapp.utils import require_admin
 from flask import Response, request, url_for
 from flask_restful import Resource
 from jsonschema import ValidationError, validate
@@ -9,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from cookbookapp import db
 from cookbookapp.models import Ingredient
 
-
+@require_admin
 class IngredientCollection(Resource):
     """
     Represents a collection of ingredients.

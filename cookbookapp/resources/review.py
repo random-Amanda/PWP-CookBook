@@ -3,6 +3,7 @@ This module contains the resources for handling review-related API endpoints.
 """
 import json
 import logging
+from cookbookapp.utils import require_admin
 from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
@@ -12,6 +13,7 @@ from cookbookapp.resources.recipe import RecipeItem
 
 logging.basicConfig(level=logging.INFO)
 
+@require_admin
 class ReviewCollection(Resource):
     """
     Represents a collection of reviews.

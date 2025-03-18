@@ -3,6 +3,7 @@ This module contains the resources for handling recipe-ingredient related API en
 """
 import json
 import logging
+from cookbookapp.utils import require_admin
 from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
@@ -12,6 +13,7 @@ from cookbookapp.models import RecipeIngredientQty
 
 logging.basicConfig(level=logging.INFO)
 
+@require_admin
 class RecipeIngredientQtyCollection(Resource):
     """
     Represents a collection of recipe-ingredients.

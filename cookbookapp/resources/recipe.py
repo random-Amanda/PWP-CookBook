@@ -3,6 +3,7 @@ This module contains the resources for handling recipe related API endpoints.
 """
 import json
 import logging
+from cookbookapp.utils import require_admin
 from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
@@ -12,6 +13,7 @@ from cookbookapp.models import Recipe
 
 logging.basicConfig(level=logging.INFO)
 
+@require_admin
 class RecipeCollection(Resource):
     """
     Represents a collection of recipe.
