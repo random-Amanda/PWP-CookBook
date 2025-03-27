@@ -4,20 +4,27 @@ This file contain Converters for urls
 from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
 from werkzeug.exceptions import Forbidden
-from flask import request
-import secrets
+from flask import Flask, request, jsonify,Response
+import functools
+import json
 
 from cookbookapp.models import Review, Ingredient, User, Recipe, ApiKey
 
 #The authentication key will be in "Api-Key" header
 def require_admin(func):
-    def wrapper(*args, **kwargs):
-        key_hash = ApiKey.key_hash(request.headers.get("Api-Key").strip())
-        db_key = ApiKey.query.filter_by(admin=True).first()
-        if secrets.compare_digest(key_hash, db_key.key):
-            return func(*args, **kwargs)
-        raise Forbidden
-    return wrapper
+    @functools.wraps(func)
+    def decorated_function(*args, **kwargs):
+        api_key = request.headers.get("API-KEY")
+        stored_api_key = get__api_key()
+        if not api_key or not stored_api_key or api_key != stored_api_key.decode('utf-8'):
+            return Response(json.dumps({"error": "Unauthorized"}), status=401, mimetype="application/json")
+        return func(*args, **kwargs)
+    return decorated_function
+
+#Fetch the first API key from the database
+def get__api_key():
+    api_key_entry = ApiKey.query.first()
+    return api_key_entry.key if api_key_entry else None
 
 class ReviewConverter(BaseConverter):
     """

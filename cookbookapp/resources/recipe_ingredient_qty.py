@@ -13,11 +13,11 @@ from cookbookapp.models import RecipeIngredientQty
 
 logging.basicConfig(level=logging.INFO)
 
-@require_admin
 class RecipeIngredientQtyCollection(Resource):
     """
     Represents a collection of recipe-ingredients.
     """
+    @require_admin
     def post(self, recipe):
         """
         Handle POST requests to create a new recipe-ingredient.
@@ -60,6 +60,7 @@ class RecipeIngredientQtyItem(Resource):
     """
     Represents a single recipe ingredient.
     """
+    @require_admin
     def put(self, recipe, ingredient):
         """
         Handle GET requests to retrieve a single recipe ingredient.
@@ -95,6 +96,7 @@ class RecipeIngredientQtyItem(Resource):
 
         return Response(status=204)
 
+    @require_admin
     def delete(self, recipe, ingredient):
         """
         Handle DELETE requests to delete a recipe ingredient.

@@ -2,9 +2,6 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
-import secrets
-
-from cookbookapp.models import ApiKey
 
 # from cookbookapp.config import Config
 
@@ -42,6 +39,7 @@ def create_app(test_config=None):
 
     app.cli.add_command(models.init_db_command)
     app.cli.add_command(models.drop_db_command)
+    app.cli.add_command(models.init_apikey_command)
     app.cli.add_command(models.gen_test_data_command)
     app.cli.add_command(models.clear_test_data_command)
 
@@ -53,16 +51,7 @@ def create_app(test_config=None):
     
     app.register_blueprint(api.api_bp)
 
-    # with app.app_context():  # Create tables inside the app context
-    #     db.create_all()
-
-    token = secrets.token_urlsafe()
-    db_key = ApiKey(
-        key=ApiKey.key_hash(token),
-        admin=True
-    )
-    db.session.add(db_key)
-    db.session.commit()
-    print(token)
+    with app.app_context():  # Create tables inside the app context
+        db.create_all()
 
     return app

@@ -6,7 +6,8 @@ from flask.cli import with_appcontext
 from sqlalchemy import event, Engine
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from cookbookapp import db
-from argon2 import PasswordHasher
+import secrets
+import bcrypt
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -16,19 +17,48 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
-
-class ApiKey(db.Model):
+ 
     
-    key = db.Column(db.String(32), nullable=False, unique=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("sensor.id"), nullable=True)
+class ApiKey(db.Model):
+    """
+    Represents a the API Key.
+    """
+    __tablename__ = 'api_key'
+    key = db.Column(db.String(500), primary_key=True, autoincrement=False)
     admin =  db.Column(db.Boolean, default=False)
 
-    user = db.relationship("User", back_populates="apiKey", uselist=False)
-    
     @staticmethod
     def key_hash(key):
-        ph = PasswordHasher()
-        return ph.hash(key)
+        # converting password to array of bytes 
+        bytes = key.encode('utf-8')   
+        # generating the salt 
+        salt = bcrypt.gensalt()         
+        # Hashing the password 
+        hash = bcrypt.hashpw(bytes, salt) 
+        return hash
+
+    def serialize(self):
+        """
+        Serialize the Api key object to a dictionary.
+        """
+        return {
+            "key": self.key,
+            "admin": self.admin
+        }
+
+    @staticmethod
+    def get_schema():
+        """
+        Get the JSON schema for the Api key model.
+        """
+        return {
+            "type": "object",
+            "properties": {
+                "key": {"type": "string"},
+                "admin": {"type": "boolean"}
+            },
+            "required": ["key", "admin"]
+        }
 
 class User(db.Model):
     """
@@ -42,7 +72,6 @@ class User(db.Model):
 
     recipes = db.relationship('Recipe', back_populates='user')
     reviews = db.relationship('Review', back_populates='user')
-    apiKey = db.relationship('ApiKey', back_populates='user')
 
     def serialize(self):
         """
@@ -317,7 +346,21 @@ class RecipeIngredientQty(db.Model):
             "required": ["qty", "metric"]
         }
 
-
+@click.command("init-apikey")
+@with_appcontext
+def init_apikey_command():
+    """
+    Initialize the Api Key.
+    """
+    token = secrets.token_urlsafe()
+    key = ApiKey.key_hash(token)
+    db_key = ApiKey(
+        key= key,
+        admin=True
+    )
+    db.session.add(db_key)
+    db.session.commit()
+    click.echo(f'API-Key: {key}')
 
 @click.command("init-db")
 @with_appcontext

@@ -10,11 +10,11 @@ from sqlalchemy.exc import IntegrityError
 from cookbookapp import db
 from cookbookapp.models import Ingredient
 
-@require_admin
 class IngredientCollection(Resource):
     """
     Represents a collection of ingredients.
     """
+    @require_admin
     def get(self):
         """
         Handle GET requests to retrieve all ingredients.
@@ -27,6 +27,7 @@ class IngredientCollection(Resource):
 
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
+    @require_admin
     def post(self):
         """
         Handle POST requests to create a new ingredient.
@@ -76,6 +77,7 @@ class IngredientItem(Resource):
     """
     Represents a single ingredient.
     """
+    @require_admin
     def get(self, ingredient):
         """
         Handle GET requests to retrieve a single ingredient.
@@ -83,6 +85,7 @@ class IngredientItem(Resource):
         body = ingredient.serialize()
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
+    @require_admin
     def put(self, ingredient):
         """
         Handle PUT requests to update a ingredient.
@@ -123,6 +126,7 @@ class IngredientItem(Resource):
 
         return Response(status=204)
 
+    @require_admin
     def delete(self, ingredient):
         """
         Handle DELETE requests to delete a ingredient.

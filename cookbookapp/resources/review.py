@@ -13,11 +13,11 @@ from cookbookapp.resources.recipe import RecipeItem
 
 logging.basicConfig(level=logging.INFO)
 
-@require_admin
 class ReviewCollection(Resource):
     """
     Represents a collection of reviews.
     """
+    @require_admin
     def post(self, recipe):
         """
         Handle POST requests to create a new review.
@@ -62,7 +62,7 @@ class ReviewItem(Resource):
     """
     Represents a single review.
     """
-
+    @require_admin
     def delete(self, review):
         """
         Handle DELETE requests to delete a review.

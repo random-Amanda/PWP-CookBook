@@ -10,11 +10,11 @@ from sqlalchemy.exc import IntegrityError
 from cookbookapp import db
 from cookbookapp.models import User
 
-@require_admin
 class UserCollection(Resource):
     """
     Represents a collection of users.
     """
+    @require_admin
     def get(self):
         """
         Handle GET requests to retrieve all users.
@@ -44,6 +44,7 @@ class UserCollection(Resource):
 
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
+    @require_admin
     def post(self):
         """
         Handle POST requests to create a new user."""
@@ -92,6 +93,7 @@ class UserCollection(Resource):
 class UserItem(Resource):
     """
     Represents a single user."""
+    @require_admin
     def get(self, user):
         """
         Handle GET requests to retrieve a user."""
@@ -105,6 +107,7 @@ class UserItem(Resource):
         # }
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
+    @require_admin
     def put(self, user):
         """
         Handle PUT requests to update a user."""
@@ -147,6 +150,7 @@ class UserItem(Resource):
 
         return Response(status=204)
 
+    @require_admin
     def delete(self, user):
         """
         Handle DELETE requests to delete a user.

@@ -13,11 +13,11 @@ from cookbookapp.models import Recipe
 
 logging.basicConfig(level=logging.INFO)
 
-@require_admin
 class RecipeCollection(Resource):
     """
     Represents a collection of recipe.
     """
+    @require_admin
     @cache.cached(timeout=300, key_prefix='recipes_all')
     def get(self):
         """
@@ -31,6 +31,7 @@ class RecipeCollection(Resource):
 
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
+    @require_admin    
     def post(self):
         """
         Handle POST requests to create a new recipe.
@@ -78,6 +79,7 @@ class RecipeItem(Resource):
     """
     Represents a single recipe.
     """
+    @require_admin
     def get(self, recipe):
         """
         Handle GET requests to retrieve a single recipe.
@@ -85,6 +87,7 @@ class RecipeItem(Resource):
         body = recipe.serialize()
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
+    @require_admin
     def put(self, recipe):
         """
         Handle PUT requests to update a recipe.
