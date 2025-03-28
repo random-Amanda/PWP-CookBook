@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
+from flasgger import Swagger
 
 # from cookbookapp.config import Config
 
@@ -32,6 +33,45 @@ def create_app(test_config=None):
 
     db.init_app(app)
     cache.init_app(app)
+    
+    # Initialize Swagger with security scheme
+    swagger = Swagger(app, 
+                     template={
+                         "swagger": "2.0",
+                         "basePath": "/api",
+                         "info": {
+                             "title": "Cookbook API",
+                             "description": """This is a Cookbook API Server that provides a comprehensive set of endpoints for managing cooking recipes, ingredients, and user interactions. The API is designed to facilitate recipe management, ingredient handling, and user reviews.
+
+You can find out more about this API at [https://github.com/random-Amanda/PWP-CookBook](https://github.com/random-Amanda/PWP-CookBook). 
+The API follows RESTful principles and implements proper authentication using API keys.
+
+Some useful links:
+- [The Cookbook Repository](https://github.com/random-Amanda/PWP-CookBook)
+- [API Documentation](http://localhost:5000/apidocs/)
+
+Key Features:
+- Recipe Management: Create, read, update, and delete recipes
+- Ingredient Handling: Manage ingredients and their quantities
+- User Reviews: Handle user feedback and ratings
+
+Getting Started:
+1. Initialize the database: `flask init-db`
+2. Generate API key: `flask init-apikey`
+3. Add test data: `flask gen-test-data`
+
+For support or questions, please contact the development team.""",
+                             "version": "1.0.0"
+                         },
+                         "securityDefinitions": {
+                             "ApiKeyAuth": {
+                                 "type": "apiKey",
+                                 "in": "header",
+                                 "name": "API-KEY",
+                                 "description": "API key for authentication"
+                             }
+                         }
+                     })
 
     from . import models
     from . import api
