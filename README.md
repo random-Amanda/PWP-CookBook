@@ -1,75 +1,113 @@
 # PWP SPRING 2025
-# CookBook
-# Group information
+# CookBook API
+
+## Group Information
 * Student 1. Shehan Hettiarachchige (nicholas.hettiarachchige@student.oulu.fi)
 * Student 2. Amanda Randombage (Amanda.Randombage@student.oulu.fi)
 * Student 3. Hans Madalagama (Hans.Madalagama@student.oulu.fi)
 
-
 __Remember to include all required documentation and HOWTOs, including how to create and populate the database, how to run and test the API, the url to the entrypoint, instructions on how to setup and run the client, instructions on how to setup and run the axiliary service and instructions on how to deploy the api in a production environment__
 
-- Create and activate a python virtual environment
+## Prerequisites
+- Python 3.12.3
+- SQLite 3.44.3
+- Flask 3.1.0
+
+
+### 1. Create and Activate Virtual Environment
 ```bash
-    python -m venv pwpenv
-    source pwpenv/bin/activate
+python -m venv pwpenv
+source pwpenv\Scripts\activate
 ```
 
-- Install dependencies using requirements.txt file
-
+### 2. Install Dependencies
 ```bash
-    pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-- versions:
-    SQLite version 3.44.3,
-    Python 3.12.3,
-    Flask 3.1.0
-
-- Run the database initialization
-
+### 3. Set Environment Variables
+For Windows PowerShell:
 ```bash
-    python3 app/app.py
+$env:FLASK_APP = "cookbookapp"
+$env:FLASK_ENV = "development"
+$env:PYTHONPATH = (Get-Location).Path
 ```
 
-#### Check the created database on sqlite
+## Database Setup
 
-- open the db using sqlite on command prompt
-
+### 1. Initialize Database
 ```bash
-    pwp_proj> sqlite3 pwp_cb.db
-```
-- sql dump is available in the instance folder
-
-
-- Use below command to view the created tables
-
-```bash
-   sqlite> .tables
+flask init-db
 ```
 
-- Use schema command to view table screate scripts
-
+### 2. Generate API Key
 ```bash
-   sqlite> .schema
+flask init-apikey
 ```
 
-#### Navigate to the cookbookapp directory
-
-- commands for powershell
+### 3. Populate Test Data
 ```bash
-   $env:FLASK_APP = "cookbookapp"
-   $env:FLASK_ENV = "development" 
+flask gen-test-data
 ```
 
-#### Testing the API
-
-- Set the python path environment variable to current directory
+### 4. View Database
+To view the database structure and data:
 ```bash
-   $env:PYTHONPATH = (Get-Location).Path
+sqlite3 instance/pwp_cb.db
 ```
 
-- Run PyTest for each of the test case .py files
-  ```bash
-  pytest tests/recipe_resource_test.py
-  pytest --cov=cookbookapp --cov-report=term-missing
-  ```
+SQLite commands:
+```bash
+.tables          # List all tables
+.schema         # Show table creation scripts
+```
+
+## Running the Application
+
+### Start the Flask Server
+```bash
+flask run
+```
+
+The application will be available at:
+- Main application: http://localhost:5000
+- API Documentation (Swagger UI): http://localhost:5000/apidocs/
+- API Specification: http://localhost:5000/apispec.json
+
+## API Documentation
+
+The API documentation is available through Swagger UI at `/apidocs/`. The documentation includes:
+- Detailed endpoint descriptions
+- Request/response schemas
+- Authentication requirements
+- Example requests and responses
+- Error codes and their meanings
+
+### API Authentication
+All API endpoints require an API key for authentication. Include the API key in the request header:
+```
+API-KEY: your_api_key_here
+```
+
+## Testing
+
+### Run Tests
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/recipe_resource_test.py
+
+# Run tests with coverage report
+pytest --cov=cookbookapp --cov-report=term-missing
+```
+
+### Test Data Management
+```bash
+# Clear test data
+flask clear-test-data
+
+# Regenerate test data
+flask gen-test-data
+```
