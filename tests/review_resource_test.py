@@ -1,14 +1,33 @@
+"""
+Test the ReviewCollection and ReviewItem resources.
+"""
 import json
 import os
 import tempfile
 import pytest
-from unittest.mock import patch
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
-from sqlalchemy.exc import SQLAlchemyError
+from flask.testing import FlaskClient
+from werkzeug.datastructures import Headers
 
 from cookbookapp import create_app, db
-from cookbookapp.models import Ingredient, Recipe, RecipeIngredientQty, Review, User
+from cookbookapp.models import Ingredient, Recipe, RecipeIngredientQty, Review, User, ApiKey
+
+# Test API key
+TEST_KEY = "verysafetestkey"
+
+class AuthHeaderClient(FlaskClient):
+    """
+    A test client that automatically adds the API key to all requests.
+    """
+    def open(self, *args, **kwargs):
+        api_key_headers = Headers({
+            'API-KEY': TEST_KEY
+        })
+        headers = kwargs.pop('headers', Headers())
+        headers.extend(api_key_headers)
+        kwargs['headers'] = headers
+        return super().open(*args, **kwargs)
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -22,6 +41,9 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 @pytest.fixture
 def client():
+    """
+    Return a test client for the app.
+    """
     db_fd, db_fname = tempfile.mkstemp()
     config = {
         "SQLALCHEMY_DATABASE_URI": "sqlite:///" + db_fname,
@@ -32,9 +54,16 @@ def client():
 
     with app.app_context():
         db.create_all()
+        # Create test API key in the database
+        db_key = ApiKey(
+            key=ApiKey.key_hash(TEST_KEY),
+            admin=True
+        )
+        db.session.add(db_key)
+        db.session.commit()
         _populate_db()
 
-    # app.test_client_class = AuthHeaderClient
+    app.test_client_class = AuthHeaderClient
     yield app.test_client()
 
     # Ensure the database connection is closed

@@ -7,17 +7,56 @@ from werkzeug.exceptions import Forbidden
 from flask import Flask, request, jsonify,Response
 import functools
 import json
+import bcrypt
 
 from cookbookapp.models import Review, Ingredient, User, Recipe, ApiKey
 
-#The authentication key will be in "Api-Key" header
+# The authentication key will be in "Api-Key" header
 def require_admin(func):
+    """
+    Decorator to require API key for protected routes.
+    """
     @functools.wraps(func)
     def decorated_function(*args, **kwargs):
-        api_key = request.headers.get("API-KEY")
-        stored_api_key = get__api_key()
-        if not api_key or not stored_api_key or api_key != stored_api_key.decode('utf-8'):
-            return Response(json.dumps({"error": "Unauthorized"}), status=401, mimetype="application/json")
+        api_key = request.headers.get("API-KEY", "").strip()
+        
+        if not api_key:
+            return Response(
+                status=401,
+                response=json.dumps({
+                    "error": "Unauthorized",
+                    "message": "Missing API key"
+                }),
+                mimetype="application/json"
+            )
+
+        # Get the admin key from database
+        db_key = ApiKey.query.filter_by(admin=True).first()
+        
+        if not db_key:
+            return Response(
+                status=401,
+                response=json.dumps({
+                    "error": "Unauthorized",
+                    "message": "Admin key not configured"
+                }),
+                mimetype="application/json"
+            )
+
+        # Hash the provided API key and compare with stored hash
+        key_hash = ApiKey.key_hash(api_key)
+
+        # Use bcrypt.checkpw to compare the hashes
+        if not bcrypt.checkpw(api_key.encode('utf-8'), db_key.key):
+            return Response(
+                status=401,
+                response=json.dumps({
+                    "error": "Unauthorized",
+                    "message": "Invalid API key"
+                }),
+                mimetype="application/json"
+            )
+
         return func(*args, **kwargs)
     return decorated_function
 
