@@ -72,7 +72,6 @@ flask run
 The application will be available at:
 - Main application: http://localhost:5000
 - API Documentation (Swagger UI): http://localhost:5000/apidocs/
-- API Specification: http://localhost:5000/apispec.json
 
 ## API Documentation
 
