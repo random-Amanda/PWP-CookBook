@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 
@@ -16,7 +17,9 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY="dev",
         SQLALCHEMY_DATABASE_URI="sqlite:///" + os.path.join(app.instance_path, "pwp_cb.db"),
-        SQLALCHEMY_TRACK_MODIFICATIONS=False
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        CACHE_TYPE="FileSystemCache",
+        CACHE_DIR=os.path.join(app.instance_path, "cache")
     )
     print(app.instance_path)
 
