@@ -1,17 +1,16 @@
 """
 This file contain Converters for urls
 """
-from werkzeug.routing import BaseConverter
-from werkzeug.exceptions import NotFound
-from werkzeug.exceptions import Forbidden
-from flask import Flask, request, jsonify,Response
 import functools
 import json
 import bcrypt
+from werkzeug.routing import BaseConverter
+from werkzeug.exceptions import NotFound
+from flask import request,Response
 
 from cookbookapp.models import Review, Ingredient, User, Recipe, ApiKey
 
-# The authentication key will be in "Api-Key" header
+#The authentication key will be in "Api-Key" header
 def require_admin(func):
     """
     Decorator to require API key for protected routes.
@@ -44,9 +43,6 @@ def require_admin(func):
             )
 
         # Hash the provided API key and compare with stored hash
-        key_hash = ApiKey.key_hash(api_key)
-
-        # Use bcrypt.checkpw to compare the hashes
         if not bcrypt.checkpw(api_key.encode('utf-8'), db_key.key):
             return Response(
                 status=401,

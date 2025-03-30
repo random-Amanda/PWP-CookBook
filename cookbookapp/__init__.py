@@ -1,3 +1,6 @@
+"""
+Initialize the Flask application.
+"""
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -33,15 +36,17 @@ def create_app(test_config=None):
 
     db.init_app(app)
     cache.init_app(app)
-    
+
     # Initialize Swagger with security scheme
-    swagger = Swagger(app, 
-                     template={
-                         "swagger": "2.0",
-                         "basePath": "/api",
-                         "info": {
-                             "title": "Cookbook API",
-                             "description": """This is a Cookbook API Server that provides a comprehensive set of endpoints for managing cooking recipes, ingredients, and user interactions. The API is designed to facilitate recipe management, ingredient handling, and user reviews.
+    swagger = Swagger(app,
+                    template={
+                        "swagger": "2.0",
+                        "basePath": "/api",
+                        "info": {
+                            "title": "Cookbook API",
+                            "description": """This is a Cookbook API Server that provides a comprehensive 
+                            set of endpoints for managing cooking recipes, ingredients, and user interactions. 
+                            The API is designed to facilitate recipe management, ingredient handling, and user reviews.
 
 You can find out more about this API at [https://github.com/random-Amanda/PWP-CookBook](https://github.com/random-Amanda/PWP-CookBook). 
 The API follows RESTful principles and implements proper authentication using API keys.
@@ -49,6 +54,7 @@ The API follows RESTful principles and implements proper authentication using AP
 Some useful links:
 - [The Cookbook Repository](https://github.com/random-Amanda/PWP-CookBook)
 - [API Documentation](http://localhost:5000/apidocs/)
+- [API Specification](http://localhost:5000/apispec_1.json)
 
 Key Features:
 - Recipe Management: Create, read, update, and delete recipes
