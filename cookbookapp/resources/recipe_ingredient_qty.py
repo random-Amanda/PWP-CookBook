@@ -57,12 +57,12 @@ class RecipeIngredientQtyCollection(Resource):
 
         return Response(status=201)
 
-class RecipeIngredientQtyItem(Resource):
-    """
-    Represents a single recipe ingredient.
-    """
+# class RecipeIngredientQtyItem(Resource):
+#     """
+#     Represents a single recipe ingredient.
+#     """
     @require_admin
-    def put(self, recipe, ingredient):
+    def put(self, recipe):
         """
         Handle GET requests to retrieve a single recipe ingredient.
         """
@@ -82,8 +82,10 @@ class RecipeIngredientQtyItem(Resource):
                 str(e)
             )
 
+        ingredient_id=request.json["ingredient_id"]
+
         ingredientqty = RecipeIngredientQty.query.filter_by(
-            recipe_id=recipe.recipe_id ,ingredient_id=ingredient.ingredient_id).first()
+            recipe_id=recipe.recipe_id ,ingredient_id=ingredient_id).first()
 
         ingredientqty.qty = request.json["qty"]
         ingredientqty.metric = request.json["metric"]
@@ -95,18 +97,22 @@ class RecipeIngredientQtyItem(Resource):
         return Response(status=204)
 
     @require_admin
-    def delete(self, recipe, ingredient):
+    def delete(self, recipe):
         """
         Handle DELETE requests to delete a recipe ingredient.
         """
+        ingredient_id=request.json["ingredient_id"]
         ingredientqty = RecipeIngredientQty.query.filter_by(
-            recipe_id=recipe.recipe_id ,ingredient_id=ingredient.ingredient_id).first()
+            recipe_id=recipe.recipe_id ,ingredient_id=ingredient_id).first()
         if not ingredientqty:
             return create_error_response(
                 404,
                 NOT_FOUND_ERROR_TITLE,
                 "Recipe Ingredient Quantity " + NOT_FOUND_ERROR_DESCRIPTION
-            ) 
+            )
         db.session.delete(ingredientqty)
         db.session.commit()
+
+        cache.delete('recipes_all')
+        
         return Response(json.dumps({"message": "Recipe Ingredient Qty deleted"}), status=204)

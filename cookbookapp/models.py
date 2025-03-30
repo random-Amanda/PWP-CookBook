@@ -143,7 +143,7 @@ class Recipe(db.Model):
             "preparation_time": self.preparation_time,
             "cooking_time": self.cooking_time,
             "serving": self.serving,
-            "recipeIngredient": [
+            "recipeIngredients": [
                 {
                     "ingredient_id": ing.ingredient_id,
                     "ingredient" : ing.ingredient.name,
@@ -162,20 +162,6 @@ class Recipe(db.Model):
                 for rev in  self.reviews
             ]
             }
-
-    # def deserialize(self):
-    #     """
-    #     Deserialize a dictionary to a recipe object.
-    #     """
-    #     return Recipe(
-    #         user_id=self.get("user_id"),
-    #         title=self.get("title"),
-    #         description=self.get("description"),
-    #         steps=self.get("steps"),
-    #         preparation_time=self.get("preparation_time"),
-    #         cooking_time=self.get("cooking_time"),
-    #         serving=self.get("serving")
-    #     )
 
     @staticmethod
     def get_schema():
@@ -223,16 +209,6 @@ class Review(db.Model):
             "rating": self.rating,
             "feedback": self.feedback}
 
-    # def deserialize(self):
-    #     """
-    #     Deserialize a dictionary to a review object.
-    #     """
-    #     return Review(
-    #         user_id=self.get("user_id"),
-    #         recipe_id=self.get("recipe_id"),
-    #         rating=self.get("rating"),
-    #         feedback=self.get("feedback"))
-
     @staticmethod
     def get_schema():
         """
@@ -242,7 +218,7 @@ class Review(db.Model):
             "type": "object",
             "properties": {
                 "user_id": {"type": "integer"},
-                "recipe_id": {"type": "integer"},
+                # "recipe_id": {"type": "integer"},
                 "rating": {"type": "integer"},
                 "feedback": {"type": "string"}
             },
@@ -314,7 +290,7 @@ class RecipeIngredientQty(db.Model):
         Serialize the recipe ingredient quantity object to a dictionary.
         """
         return {
-            'qty_id': self.qty_id,
+            # 'qty_id': self.qty_id,
             'recipe_id': self.recipe_id,
             'ingredient_id': self.ingredient_id,
             'qty': self.qty,
@@ -340,12 +316,28 @@ class RecipeIngredientQty(db.Model):
         return {
             "type": "object",
             "properties": {
-                "recipe_id": {"type": "integer"},
+                # "recipe_id": {"type": "integer"},
                 "ingredient_id": {"type": "integer"},
                 "qty": {"type": "number"},
                 "metric": {"type": "string"}
             },
             "required": ["qty", "metric"]
+        }
+
+    @staticmethod
+    def get_schema_delete():
+        """
+        Get the JSON schema for the recipe ingredient quantity model.
+        """
+        return {
+            "type": "object",
+            "properties": {
+                # "recipe_id": {"type": "integer"},
+                "ingredient_id": {"type": "integer"}
+                # "qty": {"type": "number"},
+                # "metric": {"type": "string"}
+            },
+            "required": ["ingredient_id"]
         }
 
 @click.command("init-apikey")

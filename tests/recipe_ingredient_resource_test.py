@@ -136,6 +136,7 @@ class TestRecipeIngredientCollection():
     """
 
     RESOURCE_URL = "/api/recipes/1/ingredients/"
+    INVALID_URL = "/api/recipes/999/ingredients/"  # Changed to a non-existent recipe ID
 
     def test_post(self, client):
         """
@@ -156,14 +157,13 @@ class TestRecipeIngredientCollection():
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
 
-class TestRecipeIngredientItem():
-    """
-    This class implements tests for each HTTP method in recipe ingredient item
-    resource.
-    """
+# class TestRecipeIngredientItem():
+#     """
+#     This class implements tests for each HTTP method in recipe ingredient item
+#     resource.
+#     """
 
-    RESOURCE_URL = "/api/recipes/1/ingredients/ingredient-A/"
-    INVALID_URL = "/api/recipes/1/ingredients/ingredient-test/"
+    # RESOURCE_URL = "/api/recipes/1/ingredients/ingredient-A/"
 
     def test_put(self, client):
         """
@@ -185,7 +185,7 @@ class TestRecipeIngredientItem():
         resp = client.put(self.RESOURCE_URL, json=invalid)
         assert resp.status_code == 400
 
-        # test with non-existent recipe-ingredient
+        # test with non-existent recipe
         resp = client.put(self.INVALID_URL, json=valid)
         assert resp.status_code == 404
 
@@ -193,14 +193,20 @@ class TestRecipeIngredientItem():
         """
         Test DELETE method for removing a recipe ingredient quantity.
         """
+        valid = _get_recipe_ingredient_json()
+        
+        # First create a recipe ingredient to delete
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 201
+
         # test successful deletion
-        resp = client.delete(self.RESOURCE_URL)
+        resp = client.delete(self.RESOURCE_URL, json={"ingredient_id": valid["ingredient_id"]})
         assert resp.status_code == 204
 
         # verify it's gone by trying to delete again
-        resp = client.delete(self.RESOURCE_URL)
+        resp = client.delete(self.RESOURCE_URL, json={"ingredient_id": valid["ingredient_id"]})
         assert resp.status_code == 404
 
-        # test with non-existent recipe-ingredient
-        resp = client.delete("/api/recipes/999/ingredients/999/")
+        # test with non-existent recipe
+        resp = client.delete(self.INVALID_URL, json={"ingredient_id": 999})
         assert resp.status_code == 404

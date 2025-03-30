@@ -9,7 +9,7 @@ from werkzeug.exceptions import NotFound
 from flask import request, Response, url_for
 
 from cookbookapp.constants import ERROR_PROFILE, MASON
-from cookbookapp.models import Review, Ingredient, User, Recipe, ApiKey
+from cookbookapp.models import RecipeIngredientQty, Review, Ingredient, User, Recipe, ApiKey
 
 class MasonBuilder(dict):
     """
@@ -166,6 +166,135 @@ class IngredientBuilder(MasonBuilder):
             schema=Ingredient.get_schema()
         )
 
+class RecipeBuilder(MasonBuilder):
+    """
+    A subclass of MasonBuilder that is used to build a recipe object. This class
+    is used to build the recipe object that is returned in the response.
+    """
+    def add_control_add_recipe(self):
+        """
+        Adds a create control property to the response object. This is used to
+        build the response object that is returned in the response.
+        """
+        self.add_control(
+            "cookbook:add-recipe",
+            url_for("api.recipecollection"),
+            method="POST",
+            encoding="application/json",
+            title="Add a new recipe",
+            schema=Recipe.get_schema()
+        )
+
+    def add_control_delete_recipe(self, recipe):
+        """
+        Adds a delete control property to the response object. This is used to
+        build the response object that is returned in the response.
+        """
+        self.add_control(
+            "cookbook:delete-recipe",
+            url_for("api.recipeitem", recipe=recipe),
+            method="DELETE",
+            title="Delete this recipe"
+        )
+
+    def add_control_update_recipe(self, recipe):
+        """
+        Adds a update control property to the response object. This is used to
+        build the response object that is returned in the response.
+        """
+        self.add_control(
+            "cookbook:update-recipe",
+            url_for("api.recipeitem", recipe=recipe),
+            method="PUT",
+            encoding="application/json",
+            title="Update this recipe",
+            schema=Recipe.get_schema()
+        )
+
+    def add_control_add_review(self, recipe):
+        """
+        Adds a create control property to the response object. This is used to
+        build the response object that is returned in the response.
+        """
+        self.add_control(
+            "cookbook:add-review",
+            url_for("api.reviewcollection", recipe=recipe),
+            method="POST",
+            encoding="application/json",
+            title="Add a new review",
+            schema=Review.get_schema()
+        )
+
+    def add_control_delete_review(self, review):
+        """
+        Adds a delete control property to the response object. This is used to
+        build the response object that is returned in the response.
+        """
+        self.add_control(
+            "cookbook:delete-review",
+            url_for("api.reviewitem", review=review),
+            method="DELETE",
+            title="Delete this review"
+        )
+
+    def add_control_add_ingredient(self, recipe):
+        """
+        Adds a create control property to the response object. This is used to
+        build the response object that is returned in the response.
+        """
+        self.add_control(
+            "cookbook:add-ingredient",
+            url_for("api.recipeingredientqtycollection", recipe=recipe),
+            method="POST",
+            encoding="application/json",
+            title="Add a new ingredient",
+            schema=RecipeIngredientQty.get_schema()
+        )
+
+    def add_control_delete_ingredient(self, recipe):
+        """
+        Adds a delete control property to the response object. This is used to
+        build the response object that is returned in the response.
+        """
+        self.add_control(
+            "cookbook:delete-ingredient",
+            url_for("api.recipeingredientqtycollection", recipe=recipe),
+            method="DELETE",
+            title="Delete this ingredient",
+            schema=RecipeIngredientQty.get_schema_delete()
+        )
+
+    def add_control_update_ingredient(self, recipe):
+        """
+        Adds a update control property to the response object. This is used to
+        build the response object that is returned in the response.
+        """
+        self.add_control(
+            "cookbook:update-ingredient",
+            url_for("api.recipeingredientqtycollection", recipe=recipe),
+            method="PUT",
+            encoding="application/json",
+            title="Update this ingredient",
+            schema=RecipeIngredientQty.get_schema()
+        )
+
+
+# class ReviewBuilder(MasonBuilder):
+#     """
+#     A subclass of MasonBuilder that is used to build a review object. This class
+#     is used to build the review object that is returned in the response.
+#     """
+#     def add_control_delete_review(self, review):
+#         """
+#         Adds a delete control property to the response object. This is used to
+#         build the response object that is returned in the response.
+#         """
+#         self.add_control(
+#             "cookbook:delete-review",
+#             url_for("api.reviewitem", review=review),
+#             method="DELETE",
+#             title="Delete this review"
+#         )
 
 
 def require_admin(func):

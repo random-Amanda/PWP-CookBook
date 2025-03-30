@@ -8,9 +8,7 @@ from cookbookapp.resources.review import ReviewCollection, ReviewItem
 from cookbookapp.resources.user import UserCollection, UserItem
 from cookbookapp.resources.ingredient import IngredientCollection, IngredientItem
 from cookbookapp.resources.recipe import RecipeCollection, RecipeItem
-from cookbookapp.resources.recipe_ingredient_qty import (
-    RecipeIngredientQtyCollection,
-    RecipeIngredientQtyItem)
+from cookbookapp.resources.recipe_ingredient_qty import RecipeIngredientQtyCollection
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 api = Api(api_bp)
@@ -34,5 +32,5 @@ api.add_resource(RecipeItem, "/recipes/<recipe:recipe>/")
 
 # Recipe Ingredient APIs
 api.add_resource(RecipeIngredientQtyCollection, "/recipes/<recipe:recipe>/ingredients/")
-api.add_resource(RecipeIngredientQtyItem,
-                 "/recipes/<recipe:recipe>/ingredients/<ingredient:ingredient>/")
+# api.add_resource(RecipeIngredientQtyItem,
+#                  "/recipes/<recipe:recipe>/ingredients/<ingredient:ingredient>/")

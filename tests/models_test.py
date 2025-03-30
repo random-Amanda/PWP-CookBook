@@ -72,7 +72,7 @@ def test_recipe_serialize(test_recipe, test_review, test_recipe_ingredient):
     # Set up relationships
     test_recipe.reviews = [test_review]
     test_recipe.recipeIngredient = [test_recipe_ingredient]
-    
+
     serialized = test_recipe.serialize()
     assert serialized == {
         "recipe_id": 1,
@@ -83,7 +83,7 @@ def test_recipe_serialize(test_recipe, test_review, test_recipe_ingredient):
         "preparation_time": "10 mins",
         "cooking_time": "20 mins",
         "serving": 4,
-        "recipeIngredient": [{
+        "recipeIngredients": [{
             "ingredient_id": 1,
             "ingredient": "Test Ingredient",
             "qty": 100.0,
@@ -118,9 +118,9 @@ def test_ingredient_serialize(test_ingredient):
 def test_recipe_ingredient_qty_serialize(test_recipe_ingredient):
     serialized = test_recipe_ingredient.serialize()
     assert serialized == {
-        "qty_id": 1,
+        # "qty_id": 1,
         "recipe_id": 1,
         "ingredient_id": 1,
         "qty": 100.0,
         "metric": "g"
-    } 
+    }

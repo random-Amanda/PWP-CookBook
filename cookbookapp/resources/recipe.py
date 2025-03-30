@@ -7,8 +7,13 @@ from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
 from cookbookapp import db, cache
+from cookbookapp.constants import (
+    LINK_RELATIONS_URL,
+    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
+    UNSUPPORTED_MEDIA_TYPE_TITLE,
+    VALIDATION_ERROR_INVALID_JSON_TITLE)
 from cookbookapp.models import Recipe
-from cookbookapp.utils import require_admin
+from cookbookapp.utils import RecipeBuilder, create_error_response, require_admin
 
 logging.basicConfig(level=logging.INFO)
 
@@ -100,10 +105,20 @@ class RecipeCollection(Resource):
                   type: string
                   description: Error message
         """
-        body = {"items": []}
+
+        body = RecipeBuilder()
+        body.add_namespace("cookbook", LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.recipecollection"))
+        body.add_control_add_recipe()
+        body["items"] = []
+
         recipes = Recipe.query.all()
         for recipe in recipes:
-            item = recipe.serialize()
+            item = RecipeBuilder(recipe.serialize())
+            item.add_control("self", url_for("api.recipeitem", recipe=recipe))
+            item.add_control("profile", "/profiles/recipe/")
+            item.add_control_update_recipe(recipe)
+            item.add_control_delete_recipe(recipe)
             body["items"].append(item)
 
         return Response(json.dumps(body), status=200, mimetype="application/json")
@@ -188,24 +203,20 @@ class RecipeCollection(Resource):
                       type: string
         """
         if not request.is_json:
-            body = {
-                "error": {
-                    "title": "Unsupported media type",
-                    "description": "Requests must be JSON"
-                }
-            }
-            return Response(json.dumps(body), status=415, mimetype="application/json")
+            return create_error_response(
+                415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
+            )
 
         try:
             validate(request.json, Recipe.get_schema())
         except ValidationError as e:
-            body = {
-                "error": {
-                    "title": "Invalid JSON document",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=400, mimetype="application/json")
+            return create_error_response(
+                400,
+                VALIDATION_ERROR_INVALID_JSON_TITLE,
+                str(e)
+            )
 
         recipe = Recipe(
             user_id=request.json["user_id"],
@@ -310,7 +321,37 @@ class RecipeItem(Resource):
           404:
             description: Recipe not found
         """
-        body = recipe.serialize()
+        body = RecipeBuilder(recipe.serialize())
+        body.add_namespace("cookbook", LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.recipeitem", recipe=recipe))
+        body.add_control("profile", "/profiles/recipe/")
+        body.add_control_update_recipe(recipe)
+        body.add_control_delete_recipe(recipe)
+
+        body.add_control_add_review(recipe)
+        reviews = recipe.reviews
+        body["reviews"] = []
+        for review in reviews:
+            item = RecipeBuilder(review.serialize())
+            item.add_control("self", url_for("api.reviewitem", review=review.review_id))
+            item.add_control("profile", "/profiles/review/")
+            item.add_control_add_review(recipe)
+            item.add_control_delete_review(review.review_id)
+            body["reviews"].append(item)
+
+        body.add_control_add_ingredient(recipe)
+        recipe_ingredients = recipe.recipeIngredient
+        body["recipeIngredients"] = []
+        for recipe_ingredient in recipe_ingredients:
+            item = RecipeBuilder(recipe_ingredient.serialize())
+            item.add_control("self",
+                             url_for("api.recipeingredientqtycollection",
+                                     recipe=recipe))
+            item.add_control("profile", "/profiles/recipeingredient/")
+            item.add_control_update_ingredient(recipe)
+            item.add_control_delete_ingredient(recipe)
+            body["recipeIngredients"].append(item)
+
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
     @require_admin
@@ -393,24 +434,20 @@ class RecipeItem(Resource):
                       type: string
         """
         if not request.is_json:
-            body = {
-                "error": {
-                    "title": "Unsupported media type",
-                    "description": "Requests must be JSON"
-                }
-            }
-            return Response(json.dumps(body), status=415, mimetype="application/json")
+            return create_error_response(
+                415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
+            )
 
         try:
             validate(request.json, Recipe.get_schema())
         except ValidationError as e:
-            body = {
-                "error": {
-                    "title": "Invalid JSON document",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=400, mimetype="application/json")
+            return create_error_response(
+                400,
+                VALIDATION_ERROR_INVALID_JSON_TITLE,
+                str(e)
+            )
 
         #recipe.user_id = request.json["user_id"]
         recipe.title = request.json["title"]

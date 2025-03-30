@@ -34,13 +34,11 @@ class UserCollection(Resource):
 
         users = User.query.all()
         for user in users:
-
             item = UserBuilder(user.serialize())
             item.add_control("self", url_for("api.useritem", user=user))
             item.add_control("profile", USER_PROFILE)
             body.add_control_update_user(user)
             body.add_control_delete_user(user)
-
             body["items"].append(item)
 
         return Response(json.dumps(body), 200, mimetype=MASON)
