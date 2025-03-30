@@ -3,13 +3,12 @@ This module contains the resources for handling recipe related API endpoints.
 """
 import json
 import logging
-from cookbookapp.utils import require_admin
 from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
-from sqlalchemy.exc import IntegrityError
 from cookbookapp import db, cache
 from cookbookapp.models import Recipe
+from cookbookapp.utils import require_admin
 
 logging.basicConfig(level=logging.INFO)
 
@@ -109,7 +108,7 @@ class RecipeCollection(Resource):
 
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
-    @require_admin    
+    @require_admin
     def post(self):
         """
         Create a new recipe

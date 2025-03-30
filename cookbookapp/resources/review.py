@@ -3,13 +3,16 @@ This module contains the resources for handling review-related API endpoints.
 """
 import json
 import logging
-from cookbookapp.utils import require_admin
 from flask_restful import Resource
-from flask import Response, request, url_for
+from flask import Response, request
 from jsonschema import ValidationError, validate
 from cookbookapp import db, cache
+from cookbookapp.constants import (
+    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
+    UNSUPPORTED_MEDIA_TYPE_TITLE,
+    VALIDATION_ERROR_INVALID_JSON_TITLE)
 from cookbookapp.models import Review
-from cookbookapp.resources.recipe import RecipeItem
+from cookbookapp.utils import create_error_response, require_admin
 
 logging.basicConfig(level=logging.INFO)
 
@@ -23,24 +26,20 @@ class ReviewCollection(Resource):
         Handle POST requests to create a new review.
         """
         if not request.is_json:
-            body = {
-                "error": {
-                    "title": "Unsupported media type",
-                    "description": "Requests must be JSON"
-                }
-            }
-            return Response(json.dumps(body), status=415, mimetype="application/json")
+            return create_error_response(
+                415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
+            )
 
         try:
             validate(request.json, Review.get_schema())
         except ValidationError as e:
-            body = {
-                "error": {
-                    "title": "Invalid JSON document",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=400, mimetype="application/json")
+            return create_error_response(
+                400,
+                VALIDATION_ERROR_INVALID_JSON_TITLE,
+                str(e)
+            )
 
         review = Review(
             rating=request.json["rating"],
@@ -73,4 +72,4 @@ class ReviewItem(Resource):
 
         cache.delete('recipes_all')
 
-        return {"message": "Review deleted"}, 204
+        return Response(json.dumps({"message": "Review deleted"}), status=204)

@@ -3,13 +3,18 @@ This module contains the resources for handling recipe-ingredient related API en
 """
 import json
 import logging
-from cookbookapp.utils import require_admin
 from flask_restful import Resource
-from flask import Response, request, url_for
+from flask import Response, request
 from jsonschema import ValidationError, validate
-from sqlalchemy.exc import IntegrityError
 from cookbookapp import db, cache
+from cookbookapp.constants import (
+    NOT_FOUND_ERROR_DESCRIPTION,
+    NOT_FOUND_ERROR_TITLE,
+    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
+    UNSUPPORTED_MEDIA_TYPE_TITLE,
+    VALIDATION_ERROR_INVALID_JSON_TITLE)
 from cookbookapp.models import RecipeIngredientQty
+from cookbookapp.utils import create_error_response, require_admin
 
 logging.basicConfig(level=logging.INFO)
 
@@ -23,24 +28,20 @@ class RecipeIngredientQtyCollection(Resource):
         Handle POST requests to create a new recipe-ingredient.
         """
         if not request.is_json:
-            body = {
-                "error": {
-                    "title": "Unsupported media type",
-                    "description": "Requests must be JSON"
-                }
-            }
-            return Response(json.dumps(body), status=415, mimetype="application/json")
+            return create_error_response(
+                415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
+            )
 
         try:
             validate(request.json, RecipeIngredientQty.get_schema())
         except ValidationError as e:
-            body = {
-                "error": {
-                    "title": "Invalid JSON document",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=400, mimetype="application/json")
+            return create_error_response(
+                400,
+                VALIDATION_ERROR_INVALID_JSON_TITLE,
+                str(e)
+            )
 
         ingredientqty = RecipeIngredientQty(
             recipe_id=recipe.recipe_id,
@@ -66,24 +67,21 @@ class RecipeIngredientQtyItem(Resource):
         Handle GET requests to retrieve a single recipe ingredient.
         """
         if not request.is_json:
-            body = {
-                "error": {
-                    "title": "Unsupported media type",
-                    "description": "Requests must be JSON"
-                }
-            }
-            return Response(json.dumps(body), status=415, mimetype="application/json")
+            return create_error_response(
+                415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
+            )
 
         try:
             validate(request.json, RecipeIngredientQty.get_schema())
         except ValidationError as e:
-            body = {
-                "error": {
-                    "title": "Invalid JSON document",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=400, mimetype="application/json")
+            return create_error_response(
+                400,
+                VALIDATION_ERROR_INVALID_JSON_TITLE,
+                str(e)
+            )
+
         ingredientqty = RecipeIngredientQty.query.filter_by(
             recipe_id=recipe.recipe_id ,ingredient_id=ingredient.ingredient_id).first()
 
@@ -104,13 +102,11 @@ class RecipeIngredientQtyItem(Resource):
         ingredientqty = RecipeIngredientQty.query.filter_by(
             recipe_id=recipe.recipe_id ,ingredient_id=ingredient.ingredient_id).first()
         if not ingredientqty:
-            body = {
-                "error": {
-                    "title": "Not Found",
-                    "description": "Recipe Ingredient Quantity not found"
-                }
-            }
-            return Response(json.dumps(body), status=404, mimetype="application/json")
+            return create_error_response(
+                404,
+                NOT_FOUND_ERROR_TITLE,
+                "Recipe Ingredient Quantity " + NOT_FOUND_ERROR_DESCRIPTION
+            ) 
         db.session.delete(ingredientqty)
         db.session.commit()
-        return {"message": "Recipe Ingredient Qty deleted"}, 204
+        return Response(json.dumps({"message": "Recipe Ingredient Qty deleted"}), status=204)

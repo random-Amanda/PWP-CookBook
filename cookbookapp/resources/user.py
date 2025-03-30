@@ -2,13 +2,19 @@
 This module contains the resources for handling user API endpoints.
 """
 import json
-from cookbookapp.utils import require_admin
 from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 from cookbookapp import db
+from cookbookapp.constants import (
+    INTERGTRITY_ERROR_ALREADY_EXISTS,
+    LINK_RELATIONS_URL, MASON,
+    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
+    UNSUPPORTED_MEDIA_TYPE_TITLE, USER_PROFILE,
+    VALIDATION_ERROR_INVALID_JSON_TITLE)
 from cookbookapp.models import User
+from cookbookapp.utils import UserBuilder, create_error_response, require_admin
 
 class UserCollection(Resource):
     """
@@ -19,54 +25,45 @@ class UserCollection(Resource):
         """
         Handle GET requests to retrieve all users.
         """
-        body = {"items": []}
-        # body["self_uri"] = "/api/users/"
-        # body["name"] = "User Collection"
-        # body["description"] = "A collection of users"
 
-        # body["controls"] = {
-        #     "Create_user": {"method": "POST", "href": "/api/users", "title": "Create a new user",
-        # "schema": User.get_schema()},
-        #     "Search_user": {"method": "GET", "href": "/api/users/search",
-        # "title": "Search for users"}
-        # }
+        body = UserBuilder()
+        body.add_namespace("cookbook", LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.usercollection"))
+        body.add_control_add_user()
+        body["items"] = []
 
         users = User.query.all()
         for user in users:
 
-            item = user.serialize()
-            # item["controls"] = {
-            #     "Self": {"method": "GET", "href": url_for("api.useritem", user=user),
-            #  "title": "User details"}
-            # }
+            item = UserBuilder(user.serialize())
+            item.add_control("self", url_for("api.useritem", user=user))
+            item.add_control("profile", USER_PROFILE)
+            body.add_control_update_user(user)
+            body.add_control_delete_user(user)
 
             body["items"].append(item)
 
-        return Response(json.dumps(body), status=200, mimetype="application/json")
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
     @require_admin
     def post(self):
         """
         Handle POST requests to create a new user."""
         if not request.is_json:
-            body = {
-                "error": {
-                    "title": "Unsupported media type",
-                    "description": "Requests must be JSON"
-                }
-            }
-            return Response(json.dumps(body), status=415, mimetype="application/json")
+            return create_error_response(
+                415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
+            )
 
         try:
             validate(request.json, User.get_schema())
         except ValidationError as e:
-            body = {
-                "error": {
-                    "title": "Invalid JSON document",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=400, mimetype="application/json")
+            return create_error_response(
+                400,
+                VALIDATION_ERROR_INVALID_JSON_TITLE,
+                str(e)
+            )
 
         user = User(
             username=request.json["username"],
@@ -78,13 +75,11 @@ class UserCollection(Resource):
             db.session.add(user)
             db.session.commit()
         except IntegrityError:
-            body = {
-                "error": {
-                    "title": "User already exists",
-                    "description": f"A user with '{request.json['username']}' already exists."
-                }
-            }
-            return Response(json.dumps(body), status=409, mimetype="application/json")
+            return create_error_response(
+                409,
+                "User " + INTERGTRITY_ERROR_ALREADY_EXISTS,
+                f"A user with '{request.json['username']}' already exists."
+            )
 
         return Response(status=201, headers={
             "Location": url_for("api.useritem", user=user)
@@ -97,39 +92,34 @@ class UserItem(Resource):
     def get(self, user):
         """
         Handle GET requests to retrieve a user."""
-        body = user.serialize()
-        # body["controls"] = {
-        #     "user:update": {"method": "PUT", "href": url_for("api.useritem", user=user),
-        # "title": "Update user", "schema": User.get_schema()},
-        #     "user:delete": {"method": "DELETE", "href": url_for("api.useritem", user=user),
-        #  "title": "Delete user"},
-        #     "collection": {"method": "GET", "href": "/api/users/", "title": "Users collection"}
-        # }
-        return Response(json.dumps(body), status=200, mimetype="application/json")
+
+        body = UserBuilder(user.serialize())
+        body.add_namespace("cookbook", LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.useritem", user=user))
+        body.add_control("profile", USER_PROFILE)
+        body.add_control_update_user(user)
+        body.add_control_delete_user(user)
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
     @require_admin
     def put(self, user):
         """
         Handle PUT requests to update a user."""
         if not request.is_json:
-            body = {
-                "error": {
-                    "title": "Unsupported media type",
-                    "description": "Requests must be JSON"
-                }
-            }
-            return Response(json.dumps(body), status=415, mimetype="application/json")
+            return create_error_response(
+                415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
+            )
 
         try:
             validate(request.json, User.get_schema())
         except ValidationError as e:
-            body = {
-                "error": {
-                    "title": "Invalid JSON document",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=400, mimetype="application/json")
+            return create_error_response(
+                400,
+                VALIDATION_ERROR_INVALID_JSON_TITLE,
+                str(e)
+            )
 
         user.username = request.json["username"]
         user.email = request.json["email"]
@@ -137,16 +127,12 @@ class UserItem(Resource):
 
         try:
             db.session.commit()
-            #logging.info("Database commit successful")
         except IntegrityError:
-            #logging.error(f"Database commit failed: {e}")
-            body = {
-                "error": {
-                    "title": "User already exists",
-                    "description": f"A user with '{request.json['username']}' already exists."
-                }
-            }
-            return Response(json.dumps(body), status=409, mimetype="application/json")
+            return create_error_response(
+                409,
+                "User " + INTERGTRITY_ERROR_ALREADY_EXISTS,
+                f"A user with '{request.json['username']}' already exists."
+            )
 
         return Response(status=204)
 
@@ -157,5 +143,4 @@ class UserItem(Resource):
         """
         db.session.delete(user)
         db.session.commit()
-        return {"message": "User deleted"}, 204
-    
+        return Response(json.dumps({"message": "User deleted"}), status=204)

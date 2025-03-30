@@ -1,11 +1,12 @@
-"""
-Initialize the Flask application.
+"""Cook-Book application.
+
+This module initializes and configures the Flask application, including the
+SQLAlchemy database, caching, CLI commands, and URL converters.
 """
 import os
 from flask import Flask
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
-from flask_caching import Cache
 from flasgger import Swagger
 
 # from cookbookapp.config import Config
@@ -17,6 +18,12 @@ cache = Cache(config={
 })
 
 def create_app(test_config=None):
+    """
+    Create and configure the Flask application.
+
+    :param test_config: Optional dictionary with configuration values for testing.
+    :return: Configured Flask application instance.
+    """
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY="dev",
@@ -47,11 +54,13 @@ def create_app(test_config=None):
                         "basePath": "/api",
                         "info": {
                             "title": "Cookbook API",
-                            "description": """This is a Cookbook API Server that provides a comprehensive 
-                            set of endpoints for managing cooking recipes, ingredients, and user interactions. 
-                            The API is designed to facilitate recipe management, ingredient handling, and user reviews.
+                            "description": """This is a Cookbook API Server that provides a 
+                            comprehensive set of endpoints for managing cooking recipes, 
+                            ingredients, and user interactions. The API is designed to facilitate 
+                            recipe management, ingredient handling, and user reviews.
 
-You can find out more about this API at [https://github.com/random-Amanda/PWP-CookBook](https://github.com/random-Amanda/PWP-CookBook). 
+You can find out more about this API at [https://github.com/random-Amanda/PWP-CookBook]
+(https://github.com/random-Amanda/PWP-CookBook). 
 The API follows RESTful principles and implements proper authentication using API keys.
 
 Some useful links:
@@ -84,7 +93,11 @@ For support or questions, please contact the development team.""",
 
     from . import models
     from . import api
-    from cookbookapp.utils import ReviewConverter, UserConverter, IngredientConverter, RecipeConverter
+    from cookbookapp.utils import (
+        ReviewConverter,
+        UserConverter,
+        IngredientConverter,
+        RecipeConverter)
 
     app.cli.add_command(models.init_db_command)
     app.cli.add_command(models.drop_db_command)
@@ -97,7 +110,7 @@ For support or questions, please contact the development team.""",
     app.url_map.converters["ingredient"] = IngredientConverter
     app.url_map.converters["recipe"] = RecipeConverter
     # app.url_map.converters["ingredientqty"] = RecipeIngredientQtyConverter
-    
+
     app.register_blueprint(api.api_bp)
 
     with app.app_context():  # Create tables inside the app context

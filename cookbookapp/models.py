@@ -1,8 +1,8 @@
 """
 This file contains the models for the cookbook application.
 """
-import click
 import secrets
+import click
 import bcrypt
 from flask.cli import with_appcontext
 from sqlalchemy import event, Engine
@@ -17,7 +17,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
-  
+
 class ApiKey(db.Model):
     """
     Represents a the API Key.
@@ -28,13 +28,16 @@ class ApiKey(db.Model):
 
     @staticmethod
     def key_hash(key):
+        """
+        Hash the API key.
+        """
         # converting password to array of bytes
-        bytes = key.encode('utf-8')
+        key_bytes = key.encode('utf-8')
         # generating the salt
-        salt = bcrypt.gensalt()         
+        salt = bcrypt.gensalt()
         # Hashing the password
-        hash = bcrypt.hashpw(bytes, salt) 
-        return hash
+        hashed_key = bcrypt.hashpw(key_bytes, salt)
+        return hashed_key
 
     def serialize(self):
         """

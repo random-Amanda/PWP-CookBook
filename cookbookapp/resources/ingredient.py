@@ -2,13 +2,19 @@
 This module contains the resources for handling ingredient related API endpoints.
 """
 import json
-from cookbookapp.utils import require_admin
 from flask import Response, request, url_for
 from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 from cookbookapp import db
+from cookbookapp.constants import (
+    INTERGTRITY_ERROR_ALREADY_EXISTS,
+    LINK_RELATIONS_URL,
+    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
+    UNSUPPORTED_MEDIA_TYPE_TITLE,
+    VALIDATION_ERROR_INVALID_JSON_TITLE)
 from cookbookapp.models import Ingredient
+from cookbookapp.utils import IngredientBuilder, create_error_response, require_admin
 
 class IngredientCollection(Resource):
     """
@@ -54,10 +60,20 @@ class IngredientCollection(Resource):
                   type: string
                   description: Error message
         """
-        body = {"items": []}
+
+        body = IngredientBuilder()
+        body.add_namespace("cookbook", LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.ingredientcollection"))
+        body.add_control_add_ingredient()
+        body["items"] = []
+
         ingredients = Ingredient.query.all()
         for ingredient in ingredients:
-            item = ingredient.serialize()
+            item = IngredientBuilder(ingredient.serialize())
+            item.add_control("self", url_for("api.ingredientitem", ingredient=ingredient.name))
+            item.add_control("profile", "/profiles/ingredient/")
+            item.add_control_update_ingredient(ingredient.name)
+            item.add_control_delete_ingredient(ingredient.name)
             body["items"].append(item)
 
         return Response(json.dumps(body), status=200, mimetype="application/json")
@@ -135,24 +151,20 @@ class IngredientCollection(Resource):
                       type: string
         """
         if not request.is_json:
-            body = {
-                "error": {
-                    "title": "Unsupported media type",
-                    "description": "Requests must be JSON"
-                }
-            }
-            return Response(json.dumps(body), status=415, mimetype="application/json")
+            return create_error_response(
+                415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
+            )
 
         try:
             validate(request.json, Ingredient.get_schema())
         except ValidationError as e:
-            body = {
-                "error": {
-                    "title": "Invalid JSON document",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=400, mimetype="application/json")
+            return create_error_response(
+                400,
+                VALIDATION_ERROR_INVALID_JSON_TITLE,
+                str(e)
+            )
 
         ingredient = Ingredient(
             name=request.json["name"],
@@ -163,13 +175,11 @@ class IngredientCollection(Resource):
             db.session.add(ingredient)
             db.session.commit()
         except IntegrityError:
-            body = {
-                "error": {
-                    "title": "Already exists",
-                    "description": f"Ingredient name '{request.json['name']}' is already exists."
-                }
-            }
-            return Response(json.dumps(body), status=409, mimetype="application/json")
+            return create_error_response(
+                409,
+                INTERGTRITY_ERROR_ALREADY_EXISTS,
+                f"Ingredient name '{request.json['name']}' is already exists."
+            )
 
         return Response(status=201, headers={
             "Location": url_for("api.ingredientitem", ingredient=ingredient.name)
@@ -216,7 +226,13 @@ class IngredientItem(Resource):
           404:
             description: Ingredient not found
         """
-        body = ingredient.serialize()
+        body = IngredientBuilder(ingredient.serialize())
+        body.add_namespace("cookbook", LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.ingredientitem", ingredient=ingredient.name))
+        body.add_control("profile", "/profiles/ingredient/")
+        body.add_control_update_ingredient(ingredient.name)
+        body.add_control_delete_ingredient(ingredient.name)
+
         return Response(json.dumps(body), status=200, mimetype="application/json")
 
     @require_admin
@@ -295,24 +311,20 @@ class IngredientItem(Resource):
                       type: string
         """
         if not request.is_json:
-            body = {
-                "error": {
-                    "title": "Unsupported media type",
-                    "description": "Requests must be JSON"
-                }
-            }
-            return Response(json.dumps(body), status=415, mimetype="application/json")
+            return create_error_response(
+                415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
+            )
 
         try:
             validate(request.json, Ingredient.get_schema())
         except ValidationError as e:
-            body = {
-                "error": {
-                    "title": "Invalid JSON document",
-                    "description": str(e)
-                }
-            }
-            return Response(json.dumps(body), status=400, mimetype="application/json")
+            return create_error_response(
+                400,
+                VALIDATION_ERROR_INVALID_JSON_TITLE,
+                str(e)
+            )
 
         ingredient.name = request.json["name"]
         ingredient.description = request.json["description"]
@@ -320,14 +332,11 @@ class IngredientItem(Resource):
         try:
             db.session.commit()
         except IntegrityError:
-            body = {
-                "error": {
-                    "title": "Already exists",
-                    "description": f"Ingredient name '{request.json['name']}' is already exists."
-                }
-            }
-            return Response(json.dumps(body), status=409, mimetype="application/json")
-
+            return create_error_response(
+                409,
+                INTERGTRITY_ERROR_ALREADY_EXISTS,
+                f"Ingredient name '{request.json['name']}' is already exists."
+            )
         return Response(status=204)
 
     @require_admin
@@ -357,4 +366,4 @@ class IngredientItem(Resource):
         """
         db.session.delete(ingredient)
         db.session.commit()
-        return Response(status=204)
+        return Response(json.dumps({"message": "Ingredient deleted"}), status=204)
