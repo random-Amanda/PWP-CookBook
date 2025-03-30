@@ -314,7 +314,7 @@ def require_admin(func):
                     "error": "Unauthorized",
                     "message": "Missing API key"
                 }),
-                mimetype="application/json"
+                mimetype=MASON
             )
 
         # Get the admin key from database
@@ -327,7 +327,7 @@ def require_admin(func):
                     "error": "Unauthorized",
                     "message": "Admin key not configured"
                 }),
-                mimetype="application/json"
+                mimetype=MASON
             )
 
         # Hash the provided API key and compare with stored hash
@@ -338,7 +338,7 @@ def require_admin(func):
                     "error": "Unauthorized",
                     "message": "Invalid API key"
                 }),
-                mimetype="application/json"
+                mimetype=MASON
             )
 
         return func(*args, **kwargs)

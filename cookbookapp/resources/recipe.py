@@ -9,6 +9,7 @@ from jsonschema import ValidationError, validate
 from cookbookapp import db, cache
 from cookbookapp.constants import (
     LINK_RELATIONS_URL,
+    MASON,
     UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
     UNSUPPORTED_MEDIA_TYPE_TITLE,
     VALIDATION_ERROR_INVALID_JSON_TITLE)
@@ -121,7 +122,7 @@ class RecipeCollection(Resource):
             item.add_control_delete_recipe(recipe)
             body["items"].append(item)
 
-        return Response(json.dumps(body), status=200, mimetype="application/json")
+        return Response(json.dumps(body), status=200, mimetype=MASON)
 
     @require_admin
     def post(self):
@@ -352,7 +353,7 @@ class RecipeItem(Resource):
             item.add_control_delete_ingredient(recipe)
             body["recipeIngredients"].append(item)
 
-        return Response(json.dumps(body), status=200, mimetype="application/json")
+        return Response(json.dumps(body), status=200, mimetype=MASON)
 
     @require_admin
     def put(self, recipe):
@@ -461,4 +462,4 @@ class RecipeItem(Resource):
         db.session.commit()
         cache.delete('recipes_all')
 
-        return Response(status=204, mimetype="application/json")
+        return Response(status=204, mimetype=MASON)

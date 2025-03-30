@@ -10,6 +10,7 @@ from cookbookapp import db
 from cookbookapp.constants import (
     INTERGTRITY_ERROR_ALREADY_EXISTS,
     LINK_RELATIONS_URL,
+    MASON,
     UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
     UNSUPPORTED_MEDIA_TYPE_TITLE,
     VALIDATION_ERROR_INVALID_JSON_TITLE)
@@ -76,7 +77,7 @@ class IngredientCollection(Resource):
             item.add_control_delete_ingredient(ingredient.name)
             body["items"].append(item)
 
-        return Response(json.dumps(body), status=200, mimetype="application/json")
+        return Response(json.dumps(body), status=200, mimetype=MASON)
 
     @require_admin
     def post(self):
@@ -233,7 +234,7 @@ class IngredientItem(Resource):
         body.add_control_update_ingredient(ingredient.name)
         body.add_control_delete_ingredient(ingredient.name)
 
-        return Response(json.dumps(body), status=200, mimetype="application/json")
+        return Response(json.dumps(body), status=200, mimetype=MASON)
 
     @require_admin
     def put(self, ingredient):
