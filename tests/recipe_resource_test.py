@@ -5,13 +5,29 @@ import json
 import os
 import tempfile
 import pytest
-from unittest.mock import patch
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
-from sqlalchemy.exc import SQLAlchemyError
+from flask.testing import FlaskClient
+from werkzeug.datastructures import Headers
 
 from cookbookapp import create_app, db
-from cookbookapp.models import Ingredient, Recipe, RecipeIngredientQty, Review, User
+from cookbookapp.models import Ingredient, Recipe, RecipeIngredientQty, Review, User, ApiKey
+
+# Test API key
+TEST_KEY = "verysafetestkey"
+
+class AuthHeaderClient(FlaskClient):
+    """
+    A test client that automatically adds the API key to all requests.
+    """
+    def open(self, *args, **kwargs):
+        api_key_headers = Headers({
+            'API-KEY': TEST_KEY
+        })
+        headers = kwargs.pop('headers', Headers())
+        headers.extend(api_key_headers)
+        kwargs['headers'] = headers
+        return super().open(*args, **kwargs)
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -36,9 +52,16 @@ def client():
 
     with app.app_context():
         db.create_all()
+        # Create test API key in the database
+        db_key = ApiKey(
+            key=ApiKey.key_hash(TEST_KEY),
+            admin=True
+        )
+        db.session.add(db_key)
+        db.session.commit()
         _populate_db()
 
-    # app.test_client_class = AuthHeaderClient
+    app.test_client_class = AuthHeaderClient
     yield app.test_client()
 
     # Ensure the database connection is closed
@@ -68,7 +91,7 @@ def _populate_db():
             steps=json.dumps({'step1': 'step 1', 'step2': 'step 2'}),
             preparation_time=f"preparation Time-{idx}",
             cooking_time=f"cooking Time-{idx}",
-            serving=f"serving-{idx}" 
+            serving=f"serving-{idx}"
         )
         db.session.add(recipe)
 
@@ -155,7 +178,7 @@ class TestRecipeCollection:
         """
         Test the POST method of the RecipeCollection resource.
         """
-        
+
         valid = test_get_recipe_json()
         invalid = test_get_recipe_invalid_json()
 
@@ -211,7 +234,7 @@ class TestRecipeItem:
 
         resp = client.get(self.INVALID_URL)
         assert resp.status_code == 404
-    
+
     def test_put(self, client):
         """
         Test the PUT method of the RecipeItem resource.
@@ -227,7 +250,7 @@ class TestRecipeItem:
         resp = client.put(self.INVALID_URL, json=valid)
         assert resp.status_code == 404
 
-        ##test with another recipe 
+        ##test with another recipe
         # valid["title"] = "recipe-B"
         # valid["description"] = "description-B"
         # valid["steps"] = json.dumps({'step1': 'step 1', 'step2': 'step 2'})

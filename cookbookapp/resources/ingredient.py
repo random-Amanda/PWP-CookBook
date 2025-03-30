@@ -17,7 +17,42 @@ class IngredientCollection(Resource):
     @require_admin
     def get(self):
         """
-        Handle GET requests to retrieve all ingredients.
+        Get all ingredients
+        ---
+        tags:
+          - ingredients
+        summary: Retrieve all ingredients
+        description: Returns a list of all ingredients in the system. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        responses:
+          200:
+            description: List of ingredients retrieved successfully
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ingredient_id:
+                        type: integer
+                        description: Unique identifier for the ingredient
+                      name:
+                        type: string
+                        description: Name of the ingredient (unique)
+                      description:
+                        type: string
+                        description: Description of the ingredient
+          401:
+            description: Unauthorized - Invalid or missing API key
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  description: Error message
         """
         body = {"items": []}
         ingredients = Ingredient.query.all()
@@ -30,7 +65,74 @@ class IngredientCollection(Resource):
     @require_admin
     def post(self):
         """
-        Handle POST requests to create a new ingredient.
+        Create a new ingredient
+        ---
+        tags:
+          - ingredients
+        summary: Create a new ingredient
+        description: Creates a new ingredient in the system. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Name of the ingredient (must be unique)
+                description:
+                  type: string
+                  description: Description of the ingredient
+        responses:
+          201:
+            description: Ingredient created successfully
+            headers:
+              Location:
+                type: string
+                description: URL of the newly created ingredient
+          400:
+            description: Invalid input data
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+          401:
+            description: Unauthorized - Invalid or missing API key
+          409:
+            description: Ingredient already exists
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+          415:
+            description: Unsupported media type
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
         """
         if not request.is_json:
             body = {
@@ -80,7 +182,39 @@ class IngredientItem(Resource):
     @require_admin
     def get(self, ingredient):
         """
-        Handle GET requests to retrieve a single ingredient.
+        Get a single ingredient
+        ---
+        tags:
+          - ingredients
+        summary: Retrieve a single ingredient
+        description: Returns details of a specific ingredient. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: path
+            name: ingredient
+            required: true
+            type: string
+            description: Name of the ingredient to retrieve
+        responses:
+          200:
+            description: Ingredient retrieved successfully
+            schema:
+              type: object
+              properties:
+                ingredient_id:
+                  type: integer
+                  description: Unique identifier for the ingredient
+                name:
+                  type: string
+                  description: Name of the ingredient (unique)
+                description:
+                  type: string
+                  description: Description of the ingredient
+          401:
+            description: Unauthorized - Invalid or missing API key
+          404:
+            description: Ingredient not found
         """
         body = ingredient.serialize()
         return Response(json.dumps(body), status=200, mimetype="application/json")
@@ -88,7 +222,77 @@ class IngredientItem(Resource):
     @require_admin
     def put(self, ingredient):
         """
-        Handle PUT requests to update a ingredient.
+        Update an ingredient
+        ---
+        tags:
+          - ingredients
+        summary: Update an ingredient
+        description: Updates an existing ingredient. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: path
+            name: ingredient
+            required: true
+            type: string
+            description: Name of the ingredient to update
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: New name of the ingredient (must be unique)
+                description:
+                  type: string
+                  description: New description of the ingredient
+        responses:
+          204:
+            description: Ingredient updated successfully
+          400:
+            description: Invalid input data
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+          401:
+            description: Unauthorized - Invalid or missing API key
+          404:
+            description: Ingredient not found
+          409:
+            description: Ingredient name already exists
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+          415:
+            description: Unsupported media type
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
         """
         if not request.is_json:
             body = {
@@ -129,7 +333,27 @@ class IngredientItem(Resource):
     @require_admin
     def delete(self, ingredient):
         """
-        Handle DELETE requests to delete a ingredient.
+        Delete an ingredient
+        ---
+        tags:
+          - ingredients
+        summary: Delete an ingredient
+        description: Deletes a specific ingredient. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: path
+            name: ingredient
+            required: true
+            type: string
+            description: Name of the ingredient to delete
+        responses:
+          204:
+            description: Ingredient deleted successfully
+          401:
+            description: Unauthorized - Invalid or missing API key
+          404:
+            description: Ingredient not found
         """
         db.session.delete(ingredient)
         db.session.commit()

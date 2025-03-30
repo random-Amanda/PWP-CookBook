@@ -1,13 +1,33 @@
+"""
+Test the RecipeIngredientCollection and RecipeIngredientItem resources.
+"""
 import json
 import os
 import tempfile
 import pytest
-from unittest.mock import patch
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
+from flask.testing import FlaskClient
+from werkzeug.datastructures import Headers
 
 from cookbookapp import create_app, db
-from cookbookapp.models import Ingredient, Recipe, RecipeIngredientQty, Review, User
+from cookbookapp.models import Ingredient, Recipe, RecipeIngredientQty, Review, User, ApiKey
+
+# Test API key
+TEST_KEY = "verysafetestkey"
+
+class AuthHeaderClient(FlaskClient):
+    """
+    A test client that automatically adds the API key to all requests.
+    """
+    def open(self, *args, **kwargs):
+        api_key_headers = Headers({
+            'API-KEY': TEST_KEY
+        })
+        headers = kwargs.pop('headers', Headers())
+        headers.extend(api_key_headers)
+        kwargs['headers'] = headers
+        return super().open(*args, **kwargs)
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -21,6 +41,9 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 @pytest.fixture
 def client():
+    """
+    Return a test client for the app.
+    """
     db_fd, db_fname = tempfile.mkstemp()
     config = {
         "SQLALCHEMY_DATABASE_URI": "sqlite:///" + db_fname,
@@ -31,10 +54,22 @@ def client():
 
     with app.app_context():
         db.create_all()
+        # Create test API key in the database
+        db_key = ApiKey(
+            key=ApiKey.key_hash(TEST_KEY),
+            admin=True
+        )
+        db.session.add(db_key)
+        db.session.commit()
         _populate_db()
 
-    # app.test_client_class = AuthHeaderClient
+    app.test_client_class = AuthHeaderClient
     yield app.test_client()
+
+    # Ensure the database connection is closed
+    with app.app_context():
+        db.session.remove()
+        db.engine.dispose()
 
     os.close(db_fd)
     os.unlink(db_fname)
@@ -99,7 +134,7 @@ class TestRecipeIngredientCollection():
     This class implements tests for each HTTP method in recipe ingredient collection
     resource.
     """
-    
+
     RESOURCE_URL = "/api/recipes/1/ingredients/"
 
     def test_post(self, client):
@@ -126,7 +161,7 @@ class TestRecipeIngredientItem():
     This class implements tests for each HTTP method in recipe ingredient item
     resource.
     """
-    
+
     RESOURCE_URL = "/api/recipes/1/ingredients/ingredient-A/"
     INVALID_URL = "/api/recipes/1/ingredients/ingredient-test/"
 
@@ -169,5 +204,3 @@ class TestRecipeIngredientItem():
         # test with non-existent recipe-ingredient
         resp = client.delete("/api/recipes/999/ingredients/999/")
         assert resp.status_code == 404
-
-

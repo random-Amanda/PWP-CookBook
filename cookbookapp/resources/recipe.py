@@ -21,7 +21,85 @@ class RecipeCollection(Resource):
     @cache.cached(timeout=300, key_prefix='recipes_all')
     def get(self):
         """
-        Handle GET requests to retrieve all recipe.
+        Get all recipes
+        ---
+        tags:
+          - recipes
+        summary: Retrieve all recipes
+        description: Returns a list of all recipes in the system. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        responses:
+          200:
+            description: List of recipes retrieved successfully
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      recipe_id:
+                        type: integer
+                        description: Unique identifier for the recipe
+                      user_id:
+                        type: integer
+                        description: ID of the user who created the recipe
+                      title:
+                        type: string
+                        description: Title of the recipe
+                      description:
+                        type: string
+                        description: Description of the recipe
+                      steps:
+                        type: string
+                        description: Cooking steps in JSON format
+                      preparation_time:
+                        type: string
+                        description: Time required for preparation
+                      cooking_time:
+                        type: string
+                        description: Time required for cooking
+                      serving:
+                        type: integer
+                        description: Number of servings
+                      recipeIngredient:
+                        type: array
+                        description: List of ingredients with quantities
+                        items:
+                          type: object
+                          properties:
+                            ingredient_id:
+                              type: integer
+                            ingredient:
+                              type: string
+                            qty:
+                              type: number
+                            metric:
+                              type: string
+                      reviews:
+                        type: array
+                        description: List of reviews for the recipe
+                        items:
+                          type: object
+                          properties:
+                            review_id:
+                              type: integer
+                            rating:
+                              type: integer
+                            feedback:
+                              type: string
+                            user:
+                              type: string
+          401:
+            description: Unauthorized - Invalid or missing API key
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  description: Error message
         """
         body = {"items": []}
         recipes = Recipe.query.all()
@@ -34,7 +112,81 @@ class RecipeCollection(Resource):
     @require_admin    
     def post(self):
         """
-        Handle POST requests to create a new recipe.
+        Create a new recipe
+        ---
+        tags:
+          - recipes
+        summary: Create a new recipe
+        description: Creates a new recipe in the system. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              required:
+                - title
+                - steps
+                - preparation_time
+                - cooking_time
+                - serving
+              properties:
+                user_id:
+                  type: integer
+                  description: ID of the user creating the recipe
+                title:
+                  type: string
+                  description: Title of the recipe
+                description:
+                  type: string
+                  description: Description of the recipe
+                steps:
+                  type: string
+                  description: Cooking steps in JSON format
+                preparation_time:
+                  type: string
+                  description: Time required for preparation
+                cooking_time:
+                  type: string
+                  description: Time required for cooking
+                serving:
+                  type: integer
+                  description: Number of servings
+        responses:
+          201:
+            description: Recipe created successfully
+            headers:
+              Location:
+                type: string
+                description: URL of the newly created recipe
+          400:
+            description: Invalid input data
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+          401:
+            description: Unauthorized - Invalid or missing API key
+          415:
+            description: Unsupported media type
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
         """
         if not request.is_json:
             body = {
@@ -82,7 +234,82 @@ class RecipeItem(Resource):
     @require_admin
     def get(self, recipe):
         """
-        Handle GET requests to retrieve a single recipe.
+        Get a single recipe
+        ---
+        tags:
+          - recipes
+        summary: Retrieve a single recipe
+        description: Returns details of a specific recipe. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: path
+            name: recipe
+            required: true
+            type: integer
+            description: ID of the recipe to retrieve
+        responses:
+          200:
+            description: Recipe retrieved successfully
+            schema:
+              type: object
+              properties:
+                recipe_id:
+                  type: integer
+                  description: Unique identifier for the recipe
+                user_id:
+                  type: integer
+                  description: ID of the user who created the recipe
+                title:
+                  type: string
+                  description: Title of the recipe
+                description:
+                  type: string
+                  description: Description of the recipe
+                steps:
+                  type: string
+                  description: Cooking steps in JSON format
+                preparation_time:
+                  type: string
+                  description: Time required for preparation
+                cooking_time:
+                  type: string
+                  description: Time required for cooking
+                serving:
+                  type: integer
+                  description: Number of servings
+                recipeIngredient:
+                  type: array
+                  description: List of ingredients with quantities
+                  items:
+                    type: object
+                    properties:
+                      ingredient_id:
+                        type: integer
+                      ingredient:
+                        type: string
+                      qty:
+                        type: number
+                      metric:
+                        type: string
+                reviews:
+                  type: array
+                  description: List of reviews for the recipe
+                  items:
+                    type: object
+                    properties:
+                      review_id:
+                        type: integer
+                      rating:
+                        type: integer
+                      feedback:
+                        type: string
+                      user:
+                        type: string
+          401:
+            description: Unauthorized - Invalid or missing API key
+          404:
+            description: Recipe not found
         """
         body = recipe.serialize()
         return Response(json.dumps(body), status=200, mimetype="application/json")
@@ -90,7 +317,81 @@ class RecipeItem(Resource):
     @require_admin
     def put(self, recipe):
         """
-        Handle PUT requests to update a recipe.
+        Update a recipe
+        ---
+        tags:
+          - recipes
+        summary: Update a recipe
+        description: Updates an existing recipe. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: path
+            name: recipe
+            required: true
+            type: integer
+            description: ID of the recipe to update
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              required:
+                - title
+                - steps
+                - preparation_time
+                - cooking_time
+                - serving
+              properties:
+                title:
+                  type: string
+                  description: New title of the recipe
+                description:
+                  type: string
+                  description: New description of the recipe
+                steps:
+                  type: string
+                  description: New cooking steps in JSON format
+                preparation_time:
+                  type: string
+                  description: New preparation time
+                cooking_time:
+                  type: string
+                  description: New cooking time
+                serving:
+                  type: integer
+                  description: New number of servings
+        responses:
+          204:
+            description: Recipe updated successfully
+          400:
+            description: Invalid input data
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+          401:
+            description: Unauthorized - Invalid or missing API key
+          404:
+            description: Recipe not found
+          415:
+            description: Unsupported media type
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
         """
         if not request.is_json:
             body = {
