@@ -72,6 +72,7 @@ flask run
 The application will be available at:
 - Main application: http://localhost:5000
 - API Documentation (Swagger UI): http://localhost:5000/apidocs/
+- API Specification (JSON): http://localhost:5000/apispec_1.json
 
 ## API Documentation
 
@@ -109,4 +110,12 @@ flask clear-test-data
 
 # Regenerate test data
 flask gen-test-data
+```
+
+## Pylinting
+
+### Run tests
+```bash
+# Run test
+pylint --disable=no-member,import-outside-toplevel,no-self-use ./cookbookapp
 ```
