@@ -25,7 +25,68 @@ class RecipeIngredientQtyCollection(Resource):
     @require_admin
     def post(self, recipe):
         """
-        Handle POST requests to create a new recipe-ingredient.
+        Create a new recipe-ingredient quantity
+        ---
+        tags:
+          - recipe-ingredients
+        summary: Add an ingredient to a recipe
+        description: Adds a new ingredient with quantity to a specific recipe. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: path
+            name: recipe
+            required: true
+            type: string
+            description: Recipe ID to add ingredient
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              required:
+                - ingredient_id
+                - qty
+                - metric
+              properties:
+                ingredient_id:
+                  type: integer
+                  description: ID of the ingredient to add
+                qty:
+                  type: number
+                  description: Quantity of the ingredient
+                metric:
+                  type: string
+                  description: Unit of measurement (defaults to "g")
+        responses:
+          201:
+            description: Recipe ingredient added successfully
+          400:
+            description: Invalid input data
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+          401:
+            description: Unauthorized - Invalid or missing API key
+          415:
+            description: Unsupported media type
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
         """
         if not request.is_json:
             return create_error_response(
@@ -64,7 +125,69 @@ class RecipeIngredientQtyCollection(Resource):
     @require_admin
     def put(self, recipe):
         """
-        Handle GET requests to retrieve a single recipe ingredient.
+        Update a recipe ingredient quantity
+        ---
+        tags:
+          - recipe-ingredients
+        summary: Update ingredient quantity in a recipe
+        description: Updates the quantity and metric of an ingredient in a specific recipe. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: path
+            name: recipe
+            required: true
+            type: string
+            description: Recipe ID containing the ingredient
+          - in: path
+            name: ingredient
+            required: true
+            type: string
+            description: Ingredient name to update
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              required:
+                - qty
+                - metric
+              properties:
+                qty:
+                  type: number
+                  description: New quantity of the ingredient
+                metric:
+                  type: string
+                  description: New unit of measurement
+        responses:
+          204:
+            description: Recipe ingredient updated successfully
+          400:
+            description: Invalid input data
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+          401:
+            description: Unauthorized - Invalid or missing API key
+          415:
+            description: Unsupported media type
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
         """
         if not request.is_json:
             return create_error_response(
@@ -99,7 +222,42 @@ class RecipeIngredientQtyCollection(Resource):
     @require_admin
     def delete(self, recipe):
         """
-        Handle DELETE requests to delete a recipe ingredient.
+        Delete a recipe ingredient quantity
+        ---
+        tags:
+          - recipe-ingredients
+        summary: Remove an ingredient from a recipe
+        description: Removes an ingredient and its quantity from a specific recipe. Requires admin API key.
+        security:
+          - ApiKeyAuth: []
+        parameters:
+          - in: path
+            name: recipe
+            required: true
+            type: string
+            description: Recipe ID containing the ingredient
+          - in: path
+            name: ingredient
+            required: true
+            type: string
+            description: Name of the ingredient
+        responses:
+          204:
+            description: Recipe ingredient deleted successfully
+          401:
+            description: Unauthorized - Invalid or missing API key
+          404:
+            description: Recipe ingredient not found
+            schema:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
         """
         ingredient_id=request.json["ingredient_id"]
         ingredientqty = RecipeIngredientQty.query.filter_by(
