@@ -1,3 +1,6 @@
+"""
+Test the database models.
+"""
 import os
 import tempfile
 import pytest
@@ -16,6 +19,9 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 @pytest.fixture
 def app():
+    """
+    Create a new application for testing.
+    """
     db_fd, db_fname = tempfile.mkstemp()
     config = {
         "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_fname}",
@@ -39,10 +45,16 @@ def app():
 
 @pytest.fixture
 def client(app):
+    """
+    Return a test client for the app.
+    """
     return app.test_client()
 
 @pytest.fixture
 def runner(app):
+    """
+    Return a test runner for the app.
+    """
     return app.test_cli_runner()
 
 def _get_user():
@@ -101,7 +113,7 @@ def test_create_instances(app):
     recipeingredientqty.ingredient = ingredient
     review.user = user
     review.recipe = recipe
-    
+
     with app.app_context():
         db.session.add(user)
         db.session.add(recipe)
@@ -109,7 +121,7 @@ def test_create_instances(app):
         db.session.add(recipeingredientqty)
         db.session.add(review)
         db.session.commit()
-    
+
         assert User.query.count() == 1
         assert Recipe.query.count() == 1
         assert Ingredient.query.count() == 1
@@ -156,7 +168,7 @@ def test_user_colums(app):
         user.email = None
         db.session.add(user)
         with pytest.raises(IntegrityError):
-            db.session.commit() 
+            db.session.commit()
 
         db.session.rollback()
 

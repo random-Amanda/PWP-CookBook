@@ -2,12 +2,12 @@
 This file contains the models for the cookbook application.
 """
 import click
+import secrets
+import bcrypt
 from flask.cli import with_appcontext
 from sqlalchemy import event, Engine
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from cookbookapp import db
-import secrets
-import bcrypt
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -17,8 +17,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
- 
-    
+  
 class ApiKey(db.Model):
     """
     Represents a the API Key.
@@ -29,11 +28,11 @@ class ApiKey(db.Model):
 
     @staticmethod
     def key_hash(key):
-        # converting password to array of bytes 
-        bytes = key.encode('utf-8')   
-        # generating the salt 
+        # converting password to array of bytes
+        bytes = key.encode('utf-8')
+        # generating the salt
         salt = bcrypt.gensalt()         
-        # Hashing the password 
+        # Hashing the password
         hash = bcrypt.hashpw(bytes, salt) 
         return hash
 
@@ -353,14 +352,14 @@ def init_apikey_command():
     Initialize the Api Key.
     """
     token = secrets.token_urlsafe()
-    key = ApiKey.key_hash(token)
+    key_hash = ApiKey.key_hash(token)
     db_key = ApiKey(
-        key= key,
+        key=key_hash,
         admin=True
     )
     db.session.add(db_key)
     db.session.commit()
-    click.echo(f'API-Key: {key}')
+    click.echo(f'API-Key: {token}')  # View the original token, not the hash
 
 @click.command("init-db")
 @with_appcontext
