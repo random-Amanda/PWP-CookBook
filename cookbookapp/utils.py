@@ -260,6 +260,7 @@ class RecipeBuilder(MasonBuilder):
             "cookbook:delete-ingredient",
             url_for("api.recipeingredientqtycollection", recipe=recipe),
             method="DELETE",
+            encoding="application/json",
             title="Delete this ingredient",
             schema=RecipeIngredientQty.get_schema_delete()
         )
@@ -275,7 +276,7 @@ class RecipeBuilder(MasonBuilder):
             method="PUT",
             encoding="application/json",
             title="Update this ingredient",
-            schema=RecipeIngredientQty.get_schema()
+            schema=RecipeIngredientQty.get_schema_update()
         )
 
 

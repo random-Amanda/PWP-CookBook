@@ -48,16 +48,16 @@ def create_app(test_config=None):
     cache.init_app(app)
 
     # Initialize Swagger with security scheme
-    swagger = Swagger(app,
-                    template={
-                        "swagger": "2.0",
-                        "basePath": "/api",
-                        "info": {
-                            "title": "Cookbook API",
-                            "description": """This is a Cookbook API Server that provides a 
-                            comprehensive set of endpoints for managing cooking recipes, 
-                            ingredients, and user interactions. The API is designed to facilitate 
-                            recipe management, ingredient handling, and user reviews.
+    Swagger(app,
+            template={
+                "swagger": "2.0",
+                "basePath": "/api",
+                "info": {
+                    "title": "Cookbook API",
+                    "description": """This is a Cookbook API Server that provides a 
+                    comprehensive set of endpoints for managing cooking recipes, 
+                    ingredients, and user interactions. The API is designed to facilitate 
+                    recipe management, ingredient handling, and user reviews.
 
 You can find out more about this API at [https://github.com/random-Amanda/PWP-CookBook]
 (https://github.com/random-Amanda/PWP-CookBook). 

@@ -4,7 +4,7 @@ This module contains the resources for handling review-related API endpoints.
 import json
 import logging
 from flask_restful import Resource
-from flask import Response, request
+from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
 from cookbookapp import db, cache
 from cookbookapp.constants import (
@@ -57,6 +57,10 @@ class ReviewCollection(Resource):
         responses:
           201:
             description: Review created successfully
+            headers:
+              Location:
+                type: string
+                description: URL of the newly created review
           400:
             description: Invalid input data
             schema:

@@ -325,6 +325,22 @@ class RecipeIngredientQty(db.Model):
         }
 
     @staticmethod
+    def get_schema_update():
+        """
+        Get the JSON schema for the recipe ingredient quantity model.
+        """
+        return {
+            "type": "object",
+            "properties": {
+                # "recipe_id": {"type": "integer"},
+                "ingredient_id": {"type": "integer"},
+                "qty": {"type": "number"},
+                "metric": {"type": "string"}
+            },
+            "required": ["ingredient_id", "qty", "metric"]
+        }
+
+    @staticmethod
     def get_schema_delete():
         """
         Get the JSON schema for the recipe ingredient quantity model.

@@ -36,24 +36,63 @@ class UserCollection(Resource):
             description: List of users retrieved successfully
             schema:
               type: object
-              properties:
+              example:
+                "@namespaces":
+                  cookbook:
+                    name: "/cookbook/link-relations/"
+                "@controls":
+                  self:
+                    href: "/api/users/"
+                  cookbook:add-user:
+                    method: "POST"
+                    encoding: "application/json"
+                    title: "Add a new user"
+                    href: "/api/users/"
+                    schema:
+                      type: object
+                      properties:
+                        username:
+                          type: string
+                        email:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                        - username
+                        - email
+                        - password
                 items:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      user_id:
-                        type: integer
-                        description: Unique identifier for the user
-                      username:
-                        type: string
-                        description: Username (unique)
-                      email:
-                        type: string
-                        description: User's email address (unique)
-                      password:
-                        type: string
-                        description: User's password (hashed)
+                  - user_id: 1
+                    username: "user1"
+                    email: "user1@test.com"
+                    password: "user1"
+                    "@controls":
+                      self:
+                        href: "/api/users/user1/"
+                      profile:
+                        href: "/profiles/user/"
+                      cookbook:update-user:
+                        method: "PUT"
+                        encoding: "application/json"
+                        title: "Update this user"
+                        href: "/api/users/user1/"
+                        schema:
+                          type: object
+                          properties:
+                            username:
+                              type: string
+                            email:
+                              type: string
+                            password:
+                              type: string
+                          required:
+                            - username
+                            - email
+                            - password
+                      cookbook:delete-user:
+                        method: "DELETE"
+                        title: "Delete this user"
+                        href: "/api/users/user1/"
           401:
             description: Unauthorized - Invalid or missing API key
             schema:
@@ -75,8 +114,8 @@ class UserCollection(Resource):
             item = UserBuilder(user.serialize())
             item.add_control("self", url_for("api.useritem", user=user))
             item.add_control("profile", USER_PROFILE)
-            body.add_control_update_user(user)
-            body.add_control_delete_user(user)
+            item.add_control_update_user(user)
+            item.add_control_delete_user(user)
             body["items"].append(item)
 
         return Response(json.dumps(body), 200, mimetype=MASON)
@@ -137,14 +176,15 @@ class UserCollection(Resource):
             description: User already exists
             schema:
               type: object
-              properties:
-                error:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
+              example:
+                resource_url: "/api/users/"
+                "@error":
+                  "@message": "User already exists"
+                  "@messages":
+                    - "A user with 'user2' already exists."
+                "@controls":
+                  profile:
+                    href: "/profiles/error/"
           415:
             description: Unsupported media type
             schema:
@@ -219,19 +259,41 @@ class UserItem(Resource):
             description: User retrieved successfully
             schema:
               type: object
-              properties:
-                user_id:
-                  type: integer
-                  description: Unique identifier for the user
-                username:
-                  type: string
-                  description: Username (unique)
-                email:
-                  type: string
-                  description: Email address (unique)
-                password:
-                  type: string
-                  description: User's password (hashed)
+              example:
+                  user_id: 1
+                  username: "user1"
+                  email: "user1@test.com"
+                  password: "user1"
+                  "@namespaces":
+                    cookbook:
+                      name: "/cookbook/link-relations/"
+                  "@controls":
+                    self:
+                      href: "/api/users/user1/"
+                    profile:
+                      href: "/profiles/user/"
+                    cookbook:update-user:
+                      method: "PUT"
+                      encoding: "application/json"
+                      title: "Update this user"
+                      href: "/api/users/user1/"
+                      schema:
+                        type: object
+                        properties:
+                          username:
+                            type: string
+                          email:
+                            type: string
+                          password:
+                            type: string
+                        required:
+                          - username
+                          - email
+                          - password
+                    cookbook:delete-user:
+                      method: "DELETE"
+                      title: "Delete this user"
+                      href: "/api/users/user1/"
           401:
             description: Unauthorized - Invalid or missing API key
           404:
@@ -301,18 +363,6 @@ class UserItem(Resource):
             description: Unauthorized - Invalid or missing API key
           404:
             description: User not found
-          409:
-            description: Username already exists
-            schema:
-              type: object
-              properties:
-                error:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
           415:
             description: Unsupported media type
             schema:

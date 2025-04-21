@@ -39,64 +39,97 @@ class RecipeCollection(Resource):
             description: List of recipes retrieved successfully
             schema:
               type: object
-              properties:
+              example:
+                "@namespaces":
+                  cookbook:
+                    name: "/cookbook/link-relations/"
+                "@controls":
+                  self:
+                    href: "/api/recipes/"
+                  cookbook:add-recipe:
+                    method: "POST"
+                    encoding: "application/json"
+                    title: "Add a new recipe"
+                    schema:
+                      type: object
+                      properties:
+                        user_id:
+                          type: integer
+                        title:
+                          type: string
+                        description:
+                          type: string
+                        steps:
+                          type: string
+                        preparation_time:
+                          type: string
+                        cooking_time:
+                          type: string
+                        serving:
+                          type: integer
+                      required:
+                        - title
+                        - steps
+                        - preparation_time
+                        - cooking_time
+                        - serving
+                    href: "/api/recipes/"
                 items:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      recipe_id:
-                        type: integer
-                        description: Unique identifier for the recipe
-                      user_id:
-                        type: integer
-                        description: ID of the user who created the recipe
-                      title:
-                        type: string
-                        description: Title of the recipe
-                      description:
-                        type: string
-                        description: Description of the recipe
-                      steps:
-                        type: string
-                        description: Cooking steps in JSON format
-                      preparation_time:
-                        type: string
-                        description: Time required for preparation
-                      cooking_time:
-                        type: string
-                        description: Time required for cooking
-                      serving:
-                        type: integer
-                        description: Number of servings
-                      recipeIngredient:
-                        type: array
-                        description: List of ingredients with quantities
-                        items:
+                  - recipe_id: 1
+                    user_id: 1
+                    title: "Recipe 1"
+                    description: "Description 1"
+                    steps: "{\'step1\': \'step 1\', \'step2\': \'step 2\'}"
+                    preparation_time: "10 mins"
+                    cooking_time: "20 mins"
+                    serving: 2
+                    recipeIngredients:
+                      - ingredient_id: 1
+                        ingredient: "Ingredient 1"
+                        qty: 100
+                        metric: "g"
+                      - ingredient_id: 2
+                        ingredient: "Ingredient 2"
+                        qty: 200
+                        metric: "g"
+                    reviews:
+                      - review_id: 1
+                        rating: 5
+                        feedback: "Feedback 1"
+                        user: "user1"
+                    "@controls":
+                      self:
+                        href: "/api/recipes/1/"
+                      profile:
+                        href: "/profiles/recipe/"
+                      cookbook:update-recipe:
+                        method: "PUT"
+                        encoding: "application/json"
+                        title: "Update this recipe"
+                        schema:
                           type: object
                           properties:
-                            ingredient_id:
+                            user_id:
                               type: integer
-                            ingredient:
+                            title:
                               type: string
-                            qty:
-                              type: number
-                            metric:
+                            description:
                               type: string
-                      reviews:
-                        type: array
-                        description: List of reviews for the recipe
-                        items:
-                          type: object
-                          properties:
-                            review_id:
+                            steps:
+                              type: string
+                            preparation_time:
+                              type: string
+                            cooking_time:
+                              type: string
+                            serving:
                               type: integer
-                            rating:
-                              type: integer
-                            feedback:
-                              type: string
-                            user:
-                              type: string
+                          required:
+                            - title
+                            - steps
+                            - preparation_time
+                            - cooking_time
+                            - serving
+                        href: "/api/recipes/1/"
           401:
             description: Unauthorized - Invalid or missing API key
             schema:
@@ -119,7 +152,6 @@ class RecipeCollection(Resource):
             item.add_control("self", url_for("api.recipeitem", recipe=recipe))
             item.add_control("profile", "/profiles/recipe/")
             item.add_control_update_recipe(recipe)
-            item.add_control_delete_recipe(recipe)
             body["items"].append(item)
 
         return Response(json.dumps(body), status=200, mimetype=MASON)
@@ -264,59 +296,154 @@ class RecipeItem(Resource):
             description: Recipe retrieved successfully
             schema:
               type: object
-              properties:
-                recipe_id:
-                  type: integer
-                  description: Unique identifier for the recipe
-                user_id:
-                  type: integer
-                  description: ID of the user who created the recipe
-                title:
-                  type: string
-                  description: Title of the recipe
-                description:
-                  type: string
-                  description: Description of the recipe
-                steps:
-                  type: string
-                  description: Cooking steps in JSON format
-                preparation_time:
-                  type: string
-                  description: Time required for preparation
-                cooking_time:
-                  type: string
-                  description: Time required for cooking
-                serving:
-                  type: integer
-                  description: Number of servings
-                recipeIngredient:
-                  type: array
-                  description: List of ingredients with quantities
-                  items:
-                    type: object
-                    properties:
-                      ingredient_id:
-                        type: integer
-                      ingredient:
-                        type: string
-                      qty:
-                        type: number
-                      metric:
-                        type: string
+              example:
+                recipe_id: 1
+                user_id: 1
+                title: "Recipe 1"
+                description: "Description 1"
+                steps: "{\'step1\': \'step 1\', \'step2\': \'step 2\'}"
+                preparation_time: "10 mins"
+                cooking_time: "20 mins"
+                serving: 2
+                recipeIngredients:
+                  - recipe_id: 1
+                    ingredient_id: 1
+                    qty: 100
+                    metric: "g"
+                    "@controls":
+                      self:
+                        href: "/api/recipes/1/ingredients/"
+                      profile:
+                        href: "/profiles/recipeingredient/"
+                      cookbook:update-ingredient:
+                        method: "PUT"
+                        encoding: "application/json"
+                        title: "Update this ingredient"
+                        schema:
+                          type: object
+                          properties:
+                            ingredient_id:
+                              type: integer
+                            qty:
+                              type: number
+                            metric:
+                              type: string
+                          required:
+                            - ingredient_id
+                            - qty
+                            - metric
+                        href: "/api/recipes/1/ingredients/"
+                      cookbook:delete-ingredient:
+                        method: "DELETE"
+                        title: "Delete this ingredient"
+                        schema:
+                          type: object
+                          properties:
+                            ingredient_id:
+                              type: integer
+                          required:
+                            - ingredient_id
+                        href: "/api/recipes/1/ingredients/"
                 reviews:
-                  type: array
-                  description: List of reviews for the recipe
-                  items:
-                    type: object
-                    properties:
-                      review_id:
-                        type: integer
-                      rating:
-                        type: integer
-                      feedback:
-                        type: string
-                      user:
-                        type: string
+                  - review_id: 1
+                    user_id: 1
+                    recipe_id: 1
+                    rating: 5
+                    feedback: "Feedback 1"
+                    "@controls":
+                      self:
+                        href: "/api/reviews/1/"
+                      profile:
+                        href: "/profiles/review/"
+                      cookbook:add-review:
+                        method: "POST"
+                        encoding: "application/json"
+                        title: "Add a new review"
+                        schema:
+                          type: object
+                          properties:
+                            user_id:
+                              type: integer
+                            rating:
+                              type: integer
+                            feedback:
+                              type: string
+                          required:
+                            - rating
+                        href: "/api/recipes/1/reviews/"
+                      cookbook:delete-review:
+                        method: "DELETE"
+                        title: "Delete this review"
+                        href: "/api/reviews/1/"
+                "@namespaces":
+                  cookbook:
+                    name: "/cookbook/link-relations/"
+                "@controls":
+                  self:
+                    href: "/api/recipes/1/"
+                  profile:
+                    href: "/profiles/recipe/"
+                  cookbook:update-recipe:
+                    method: "PUT"
+                    encoding: "application/json"
+                    title: "Update this recipe"
+                    schema:
+                      type: object
+                      properties:
+                        user_id:
+                          type: integer
+                        title:
+                          type: string
+                        description:
+                          type: string
+                        steps:
+                          type: string
+                        preparation_time:
+                          type: string
+                        cooking_time:
+                          type: string
+                        serving:
+                          type: integer
+                      required:
+                        - title
+                        - steps
+                        - preparation_time
+                        - cooking_time
+                        - serving
+                    href: "/api/recipes/1/"
+                  cookbook:add-review:
+                    method: "POST"
+                    encoding: "application/json"
+                    title: "Add a new review"
+                    schema:
+                      type: object
+                      properties:
+                        user_id:
+                          type: integer
+                        rating:
+                          type: integer
+                        feedback:
+                          type: string
+                      required:
+                        - rating
+                    href: "/api/recipes/1/reviews/"
+                  cookbook:add-ingredient:
+                    method: "POST"
+                    encoding: "application/json"
+                    title: "Add a new ingredient"
+                    schema:
+                      type: object
+                      properties:
+                        ingredient_id:
+                          type: integer
+                        qty:
+                          type: number
+                        metric:
+                          type: string
+                      required:
+                        - qty
+                        - metric
+                    href: "/api/recipes/1/ingredients/"
           401:
             description: Unauthorized - Invalid or missing API key
           404:
@@ -327,7 +454,6 @@ class RecipeItem(Resource):
         body.add_control("self", url_for("api.recipeitem", recipe=recipe))
         body.add_control("profile", "/profiles/recipe/")
         body.add_control_update_recipe(recipe)
-        body.add_control_delete_recipe(recipe)
 
         body.add_control_add_review(recipe)
         reviews = recipe.reviews

@@ -139,26 +139,25 @@ class RecipeIngredientQtyCollection(Resource):
             required: true
             type: string
             description: Recipe ID containing the ingredient
-          - in: path
-            name: ingredient
-            required: true
-            type: string
-            description: Ingredient name to update
           - in: body
             name: body
             required: true
             schema:
               type: object
               required:
+                - ingredient_id
                 - qty
                 - metric
               properties:
+                ingredient_id:
+                  type: integer
+                  description: ID of the ingredient to add
                 qty:
                   type: number
-                  description: New quantity of the ingredient
+                  description: Quantity of the ingredient
                 metric:
                   type: string
-                  description: New unit of measurement
+                  description: Unit of measurement (defaults to "g")
         responses:
           204:
             description: Recipe ingredient updated successfully
@@ -236,11 +235,17 @@ class RecipeIngredientQtyCollection(Resource):
             required: true
             type: string
             description: Recipe ID containing the ingredient
-          - in: path
-            name: ingredient
+          - in: body
+            name: body
             required: true
-            type: string
-            description: Name of the ingredient
+            schema:
+              type: object
+              required:
+                - ingredient_id
+              properties:
+                ingredient_id:
+                  type: integer
+                  description: ID of the ingredient to delete
         responses:
           204:
             description: Recipe ingredient deleted successfully
@@ -250,14 +255,16 @@ class RecipeIngredientQtyCollection(Resource):
             description: Recipe ingredient not found
             schema:
               type: object
-              properties:
-                error:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
+              example:
+                  resource_url: "/api/recipes/4/ingredients/"
+                  "@error":
+                    "@message": "Not Found"
+                    "@messages":
+                      - "Recipe Ingredient Quantity resource not found"
+                  "@controls":
+                    profile:
+                      href: "/profiles/error/"
+
         """
         ingredient_id=request.json["ingredient_id"]
         ingredientqty = RecipeIngredientQty.query.filter_by(

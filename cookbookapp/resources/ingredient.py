@@ -37,21 +37,54 @@ class IngredientCollection(Resource):
             description: List of ingredients retrieved successfully
             schema:
               type: object
-              properties:
+              example:
+                "@namespaces":
+                  cookbook:
+                    name: "/cookbook/link-relations/"
+                "@controls":
+                  self:
+                    href: "/api/ingredients/"
+                  cookbook:add-ingredient:
+                    method: "POST"
+                    encoding: "application/json"
+                    title: "Add a new ingredient"
+                    href: "/api/ingredients/"
+                    schema:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                        - name
                 items:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      ingredient_id:
-                        type: integer
-                        description: Unique identifier for the ingredient
-                      name:
-                        type: string
-                        description: Name of the ingredient (unique)
-                      description:
-                        type: string
-                        description: Description of the ingredient
+                  - ingredient_id: 1
+                    name: "Ingredient 1"
+                    description: "Description 1"
+                    "@controls":
+                      self:
+                        href: "/api/ingredients/Ingredient 1/"
+                      profile:
+                        href: "/profiles/ingredient/"
+                      cookbook:update-ingredient:
+                        method: "PUT"
+                        encoding: "application/json"
+                        title: "Update this ingredient"
+                        href: "/api/ingredients/Ingredient 1/"
+                        schema:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                            - name
+                      cookbook:delete-ingredient:
+                        method: "DELETE"
+                        title: "Delete this ingredient"
+                        href: "/api/ingredients/Ingredient 1/"
           401:
             description: Unauthorized - Invalid or missing API key
             schema:
@@ -130,14 +163,15 @@ class IngredientCollection(Resource):
             description: Ingredient already exists
             schema:
               type: object
-              properties:
-                error:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
+              example:
+                resource_url: "/api/ingredients/"
+                "@error":
+                  "@message": "already exists"
+                  "@messages":
+                    - "Ingredient name 'Ingredient 5' is already exists."
+                "@controls":
+                  profile:
+                    href: "/profiles/error/"
           415:
             description: Unsupported media type
             schema:
@@ -212,16 +246,36 @@ class IngredientItem(Resource):
             description: Ingredient retrieved successfully
             schema:
               type: object
-              properties:
-                ingredient_id:
-                  type: integer
-                  description: Unique identifier for the ingredient
-                name:
-                  type: string
-                  description: Name of the ingredient (unique)
-                description:
-                  type: string
-                  description: Description of the ingredient
+              example:
+                ingredient_id: 1
+                name: "Ingredient 1"
+                description: "Description 1"
+                "@namespaces":
+                  cookbook:
+                    name: "/cookbook/link-relations/"
+                "@controls":
+                  self:
+                    href: "/api/ingredients/Ingredient 1/"
+                  profile:
+                    href: "/profiles/ingredient/"
+                  cookbook:update-ingredient:
+                    method: "PUT"
+                    encoding: "application/json"
+                    title: "Update this ingredient"
+                    href: "/api/ingredients/Ingredient 1/"
+                    schema:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                        - name
+                  cookbook:delete-ingredient:
+                    method: "DELETE"
+                    title: "Delete this ingredient"
+                    href: "/api/ingredients/Ingredient 1/"
           401:
             description: Unauthorized - Invalid or missing API key
           404:
@@ -286,18 +340,6 @@ class IngredientItem(Resource):
             description: Unauthorized - Invalid or missing API key
           404:
             description: Ingredient not found
-          409:
-            description: Ingredient name already exists
-            schema:
-              type: object
-              properties:
-                error:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
           415:
             description: Unsupported media type
             schema:
@@ -328,7 +370,7 @@ class IngredientItem(Resource):
             )
 
         ingredient.name = request.json["name"]
-        ingredient.description = request.json["description"]
+        ingredient.description = request.json.get("description", ingredient.description)
 
         try:
             db.session.commit()
