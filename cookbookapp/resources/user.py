@@ -7,14 +7,15 @@ from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 from cookbookapp import db
-from cookbookapp.constants import (
-    INTERGTRITY_ERROR_ALREADY_EXISTS,
-    LINK_RELATIONS_URL, MASON,
-    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
-    UNSUPPORTED_MEDIA_TYPE_TITLE, USER_PROFILE,
-    VALIDATION_ERROR_INVALID_JSON_TITLE)
+from cookbookapp.constants import LINK_RELATIONS_URL, MASON, USER_PROFILE
 from cookbookapp.models import User
-from cookbookapp.utils import UserBuilder, create_error_response, require_admin
+from cookbookapp.utils import (
+    UserBuilder,
+    create_400_error_response,
+    create_409_error_response,
+    create_415_error_response,
+    require_admin,
+)
 
 class UserCollection(Resource):
     """
@@ -199,20 +200,12 @@ class UserCollection(Resource):
                       type: string
         """
         if not request.is_json:
-            return create_error_response(
-                415,
-                UNSUPPORTED_MEDIA_TYPE_TITLE,
-                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
-            )
+            return create_415_error_response()
 
         try:
             validate(request.json, User.get_schema())
         except ValidationError as e:
-            return create_error_response(
-                400,
-                VALIDATION_ERROR_INVALID_JSON_TITLE,
-                str(e)
-            )
+            return create_400_error_response(str(e))
 
         user = User(
             username=request.json["username"],
@@ -224,9 +217,7 @@ class UserCollection(Resource):
             db.session.add(user)
             db.session.commit()
         except IntegrityError:
-            return create_error_response(
-                409,
-                "User " + INTERGTRITY_ERROR_ALREADY_EXISTS,
+            return create_409_error_response(
                 f"A user with '{request.json['username']}' already exists."
             )
 
@@ -377,20 +368,12 @@ class UserItem(Resource):
                       type: string
         """
         if not request.is_json:
-            return create_error_response(
-                415,
-                UNSUPPORTED_MEDIA_TYPE_TITLE,
-                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
-            )
+            return create_415_error_response()
 
         try:
             validate(request.json, User.get_schema())
         except ValidationError as e:
-            return create_error_response(
-                400,
-                VALIDATION_ERROR_INVALID_JSON_TITLE,
-                str(e)
-            )
+            return create_400_error_response(str(e))
 
         user.username = request.json["username"]
         user.email = request.json["email"]
@@ -399,9 +382,7 @@ class UserItem(Resource):
         try:
             db.session.commit()
         except IntegrityError:
-            return create_error_response(
-                409,
-                "User " + INTERGTRITY_ERROR_ALREADY_EXISTS,
+            return create_409_error_response(
                 f"A user with '{request.json['username']}' already exists."
             )
 

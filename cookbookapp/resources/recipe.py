@@ -9,12 +9,14 @@ from jsonschema import ValidationError, validate
 from cookbookapp import db, cache
 from cookbookapp.constants import (
     LINK_RELATIONS_URL,
-    MASON,
-    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
-    UNSUPPORTED_MEDIA_TYPE_TITLE,
-    VALIDATION_ERROR_INVALID_JSON_TITLE)
+    MASON)
 from cookbookapp.models import Recipe
-from cookbookapp.utils import RecipeBuilder, create_error_response, require_admin
+from cookbookapp.utils import (
+    RecipeBuilder,
+    create_415_error_response,
+    create_400_error_response,
+    require_admin,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -236,20 +238,12 @@ class RecipeCollection(Resource):
                       type: string
         """
         if not request.is_json:
-            return create_error_response(
-                415,
-                UNSUPPORTED_MEDIA_TYPE_TITLE,
-                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
-            )
+            return create_415_error_response()
 
         try:
             validate(request.json, Recipe.get_schema())
         except ValidationError as e:
-            return create_error_response(
-                400,
-                VALIDATION_ERROR_INVALID_JSON_TITLE,
-                str(e)
-            )
+            return create_400_error_response(str(e))
 
         recipe = Recipe(
             user_id=request.json["user_id"],
@@ -561,20 +555,12 @@ class RecipeItem(Resource):
                       type: string
         """
         if not request.is_json:
-            return create_error_response(
-                415,
-                UNSUPPORTED_MEDIA_TYPE_TITLE,
-                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
-            )
+            return create_415_error_response()
 
         try:
             validate(request.json, Recipe.get_schema())
         except ValidationError as e:
-            return create_error_response(
-                400,
-                VALIDATION_ERROR_INVALID_JSON_TITLE,
-                str(e)
-            )
+            return create_400_error_response(str(e))
 
         #recipe.user_id = request.json["user_id"]
         recipe.title = request.json["title"]

@@ -7,15 +7,15 @@ from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 from cookbookapp import db
-from cookbookapp.constants import (
-    INTERGTRITY_ERROR_ALREADY_EXISTS,
-    LINK_RELATIONS_URL,
-    MASON,
-    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
-    UNSUPPORTED_MEDIA_TYPE_TITLE,
-    VALIDATION_ERROR_INVALID_JSON_TITLE)
+from cookbookapp.constants import LINK_RELATIONS_URL, MASON
 from cookbookapp.models import Ingredient
-from cookbookapp.utils import IngredientBuilder, create_error_response, require_admin
+from cookbookapp.utils import (
+    IngredientBuilder,
+    require_admin,
+    create_415_error_response,
+    create_400_error_response,
+    create_409_error_response,
+)
 
 class IngredientCollection(Resource):
     """
@@ -186,20 +186,12 @@ class IngredientCollection(Resource):
                       type: string
         """
         if not request.is_json:
-            return create_error_response(
-                415,
-                UNSUPPORTED_MEDIA_TYPE_TITLE,
-                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
-            )
+            return create_415_error_response()
 
         try:
             validate(request.json, Ingredient.get_schema())
         except ValidationError as e:
-            return create_error_response(
-                400,
-                VALIDATION_ERROR_INVALID_JSON_TITLE,
-                str(e)
-            )
+            return create_400_error_response(str(e))
 
         ingredient = Ingredient(
             name=request.json["name"],
@@ -210,15 +202,17 @@ class IngredientCollection(Resource):
             db.session.add(ingredient)
             db.session.commit()
         except IntegrityError:
-            return create_error_response(
-                409,
-                INTERGTRITY_ERROR_ALREADY_EXISTS,
+            return create_409_error_response(
                 f"Ingredient name '{request.json['name']}' is already exists."
             )
 
-        return Response(status=201, headers={
-            "Location": url_for("api.ingredientitem", ingredient=ingredient.name)
-        })
+        return Response(
+            status=201,
+            headers={
+                "Location": url_for("api.ingredientitem", ingredient=ingredient.name)
+            },
+        )
+
 
 class IngredientItem(Resource):
     """
@@ -354,20 +348,12 @@ class IngredientItem(Resource):
                       type: string
         """
         if not request.is_json:
-            return create_error_response(
-                415,
-                UNSUPPORTED_MEDIA_TYPE_TITLE,
-                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
-            )
+            return create_415_error_response()
 
         try:
             validate(request.json, Ingredient.get_schema())
         except ValidationError as e:
-            return create_error_response(
-                400,
-                VALIDATION_ERROR_INVALID_JSON_TITLE,
-                str(e)
-            )
+            return create_400_error_response(str(e))
 
         ingredient.name = request.json["name"]
         ingredient.description = request.json.get("description", ingredient.description)
@@ -375,9 +361,7 @@ class IngredientItem(Resource):
         try:
             db.session.commit()
         except IntegrityError:
-            return create_error_response(
-                409,
-                INTERGTRITY_ERROR_ALREADY_EXISTS,
+            return create_409_error_response(
                 f"Ingredient name '{request.json['name']}' is already exists."
             )
         return Response(status=204)

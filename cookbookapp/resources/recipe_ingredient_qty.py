@@ -7,14 +7,13 @@ from flask_restful import Resource
 from flask import Response, request
 from jsonschema import ValidationError, validate
 from cookbookapp import db, cache
-from cookbookapp.constants import (
-    NOT_FOUND_ERROR_DESCRIPTION,
-    NOT_FOUND_ERROR_TITLE,
-    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
-    UNSUPPORTED_MEDIA_TYPE_TITLE,
-    VALIDATION_ERROR_INVALID_JSON_TITLE)
 from cookbookapp.models import RecipeIngredientQty
-from cookbookapp.utils import create_error_response, require_admin
+from cookbookapp.utils import (
+    create_415_error_response,
+    create_400_error_response,
+    create_404_error_response,
+    require_admin,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -89,20 +88,12 @@ class RecipeIngredientQtyCollection(Resource):
                       type: string
         """
         if not request.is_json:
-            return create_error_response(
-                415,
-                UNSUPPORTED_MEDIA_TYPE_TITLE,
-                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
-            )
+            return create_415_error_response()
 
         try:
             validate(request.json, RecipeIngredientQty.get_schema())
         except ValidationError as e:
-            return create_error_response(
-                400,
-                VALIDATION_ERROR_INVALID_JSON_TITLE,
-                str(e)
-            )
+            return create_400_error_response(str(e))
 
         ingredientqty = RecipeIngredientQty(
             recipe_id=recipe.recipe_id,
@@ -189,20 +180,12 @@ class RecipeIngredientQtyCollection(Resource):
                       type: string
         """
         if not request.is_json:
-            return create_error_response(
-                415,
-                UNSUPPORTED_MEDIA_TYPE_TITLE,
-                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
-            )
+            return create_415_error_response()
 
         try:
             validate(request.json, RecipeIngredientQty.get_schema())
         except ValidationError as e:
-            return create_error_response(
-                400,
-                VALIDATION_ERROR_INVALID_JSON_TITLE,
-                str(e)
-            )
+            return create_400_error_response(str(e))
 
         ingredient_id=request.json["ingredient_id"]
 
@@ -270,11 +253,9 @@ class RecipeIngredientQtyCollection(Resource):
         ingredientqty = RecipeIngredientQty.query.filter_by(
             recipe_id=recipe.recipe_id ,ingredient_id=ingredient_id).first()
         if not ingredientqty:
-            return create_error_response(
-                404,
-                NOT_FOUND_ERROR_TITLE,
-                "Recipe Ingredient Quantity " + NOT_FOUND_ERROR_DESCRIPTION
-            )
+            return create_404_error_response(
+                "Recipe Ingredient Quantity "
+                )
         db.session.delete(ingredientqty)
         db.session.commit()
 

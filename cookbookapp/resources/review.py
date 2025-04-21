@@ -7,12 +7,12 @@ from flask_restful import Resource
 from flask import Response, request, url_for
 from jsonschema import ValidationError, validate
 from cookbookapp import db, cache
-from cookbookapp.constants import (
-    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
-    UNSUPPORTED_MEDIA_TYPE_TITLE,
-    VALIDATION_ERROR_INVALID_JSON_TITLE)
 from cookbookapp.models import Review
-from cookbookapp.utils import create_error_response, require_admin
+from cookbookapp.utils import (
+    create_415_error_response,
+    create_400_error_response,
+    require_admin,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -89,20 +89,12 @@ class ReviewCollection(Resource):
                       type: string
         """
         if not request.is_json:
-            return create_error_response(
-                415,
-                UNSUPPORTED_MEDIA_TYPE_TITLE,
-                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION
-            )
+            return create_415_error_response()
 
         try:
             validate(request.json, Review.get_schema())
         except ValidationError as e:
-            return create_error_response(
-                400,
-                VALIDATION_ERROR_INVALID_JSON_TITLE,
-                str(e)
-            )
+            return create_400_error_response(str(e))
 
         review = Review(
             rating=request.json["rating"],

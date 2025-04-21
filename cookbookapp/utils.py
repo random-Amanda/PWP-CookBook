@@ -7,8 +7,16 @@ import bcrypt
 from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
 from flask import request, Response, url_for
+from cookbookapp.constants import (
+    MASON,
+    ERROR_PROFILE,
+    UNSUPPORTED_MEDIA_TYPE_DESCRIPTION,
+    UNSUPPORTED_MEDIA_TYPE_TITLE,
+    INTERGTRITY_ERROR_ALREADY_EXISTS,
+    NOT_FOUND_ERROR_TITLE,
+    NOT_FOUND_ERROR_DESCRIPTION,
+    VALIDATION_ERROR_INVALID_JSON_TITLE)
 
-from cookbookapp.constants import ERROR_PROFILE, MASON
 from cookbookapp.models import RecipeIngredientQty, Review, Ingredient, User, Recipe, ApiKey
 
 class MasonBuilder(dict):
@@ -368,6 +376,53 @@ def create_error_response(status_code, title, message=None):
     body.add_error(title, message)
     body.add_control("profile", href=ERROR_PROFILE)
     return Response(json.dumps(body), status_code, mimetype=MASON)
+
+# Create 400 Error Resonse
+def create_400_error_response(error):
+    """
+    Create a JSON error response with a 400 status code.
+    :param error: The error as a string.
+    :return: Flask Response object with the error message.
+    """
+    return create_error_response(400,
+                    VALIDATION_ERROR_INVALID_JSON_TITLE,
+                    error)
+
+# Create 415 Error Resonse
+def create_415_error_response():
+    """
+    Create a JSON error response with a 415 status code.
+    :return: Flask Response object with the error message.
+    """
+    return create_error_response(415,
+                UNSUPPORTED_MEDIA_TYPE_TITLE,
+                UNSUPPORTED_MEDIA_TYPE_DESCRIPTION)
+
+# Create 409 Error Resonse
+def create_409_error_response(message):
+    """
+    Create a JSON error response with a 409 status code.
+    :param message: The error message.
+    :return: Flask Response object with the error message.
+    """
+    return create_error_response(
+                409,
+                INTERGTRITY_ERROR_ALREADY_EXISTS,
+                message
+            )
+
+# Create 404 Error Resonse
+def create_404_error_response(message_prefix):
+    """
+    Create a JSON error response with a 404 status code.
+    :param message_prefix: The prefix of the error message.
+    :return: Flask Response object with the error message.
+    """
+    return create_error_response(
+                404,
+                NOT_FOUND_ERROR_TITLE,
+                message_prefix + NOT_FOUND_ERROR_DESCRIPTION
+            )
 
 # Converters for URL parameters
 
