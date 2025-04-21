@@ -15,22 +15,36 @@ __Remember to include all required documentation and HOWTOs, including how to cr
 
 
 ### 1. Create and Activate Virtual Environment
+For Windows PowerShell
 ```bash
 python -m venv pwpenv
 source pwpenv\Scripts\activate
+```
+For Linux
+```bash
+python -m venv pwpenv
+source pwpenv\bin\activate
 ```
 
 ### 2. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
+#### Change directory to pwp-cookbook
+```bash
+cd "pwp-cookbook"
+```
 
 ### 3. Set Environment Variables
 For Windows PowerShell:
 ```bash
 $env:FLASK_APP = "cookbookapp"
-$env:FLASK_ENV = "development"
 $env:PYTHONPATH = (Get-Location).Path
+```
+For Linux:
+```bash
+export FLASK_APP=cookbookapp
+export PYTHONPATH=$(pwd)
 ```
 
 ## Database Setup
@@ -100,7 +114,7 @@ pytest
 pytest tests/recipe_resource_test.py
 
 # Run tests with coverage report
-pytest --cov=cookbookapp --cov-report=term-missing
+pytest --cov=cookbookapp --cov-report=html
 ```
 
 ### Test Data Management
