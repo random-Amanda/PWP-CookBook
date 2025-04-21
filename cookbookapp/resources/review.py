@@ -97,6 +97,8 @@ class ReviewCollection(Resource):
                   type: string
                 message:
                   type: string
+          404:
+            description: Recipe not found
           415:
             description: Unsupported media type
             schema:
