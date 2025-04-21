@@ -101,7 +101,8 @@ class UserCollection(Resource):
               properties:
                 error:
                   type: string
-                  description: Error message
+                message:
+                  type: string
         """
 
         body = UserBuilder()
@@ -164,15 +165,37 @@ class UserCollection(Resource):
             schema:
               type: object
               properties:
-                error:
+                resource_url:
+                  type: string
+                  description: The URL of the resource that triggered the error
+                "@error":
                   type: object
                   properties:
-                    title:
+                    "@message":
                       type: string
-                    description:
-                      type: string
+                      description: A short summary of the error
+                    "@messages":
+                      type: array
+                      description: Detailed validation or system error messages
+                      items:
+                        type: string
+                "@controls":
+                  type: object
+                  properties:
+                    profile:
+                      type: object
+                      properties:
+                        href:
+                          type: string
           401:
             description: Unauthorized - Invalid or missing API key
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                message:
+                  type: string
           409:
             description: User already exists
             schema:
@@ -190,14 +213,15 @@ class UserCollection(Resource):
             description: Unsupported media type
             schema:
               type: object
-              properties:
-                error:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
+              example:
+                resource_url: "string"
+                "@error":
+                  "@message": "Unsupported media type"
+                  "@messages":
+                    - "Requests must be JSON"
+                "@controls":
+                  profile:
+                    href: "/profiles/error/"
         """
         if not request.is_json:
             return create_415_error_response()
@@ -287,6 +311,13 @@ class UserItem(Resource):
                       href: "/api/users/user1/"
           401:
             description: Unauthorized - Invalid or missing API key
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                message:
+                  type: string
           404:
             description: User not found
         """
@@ -343,29 +374,52 @@ class UserItem(Resource):
             schema:
               type: object
               properties:
-                error:
+                resource_url:
+                  type: string
+                  description: The URL of the resource that triggered the error
+                "@error":
                   type: object
                   properties:
-                    title:
+                    "@message":
                       type: string
-                    description:
-                      type: string
+                      description: A short summary of the error
+                    "@messages":
+                      type: array
+                      description: Detailed validation or system error messages
+                      items:
+                        type: string
+                "@controls":
+                  type: object
+                  properties:
+                    profile:
+                      type: object
+                      properties:
+                        href:
+                          type: string
           401:
             description: Unauthorized - Invalid or missing API key
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                message:
+                  type: string
           404:
             description: User not found
           415:
             description: Unsupported media type
             schema:
               type: object
-              properties:
-                error:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
+              example:
+                resource_url: "string"
+                "@error":
+                  "@message": "Unsupported media type"
+                  "@messages":
+                    - "Requests must be JSON"
+                "@controls":
+                  profile:
+                    href: "/profiles/error/"
         """
         if not request.is_json:
             return create_415_error_response()
@@ -410,6 +464,13 @@ class UserItem(Resource):
             description: User deleted successfully
           401:
             description: Unauthorized - Invalid or missing API key
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                message:
+                  type: string
           404:
             description: User not found
         """

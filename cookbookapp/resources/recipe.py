@@ -139,7 +139,8 @@ class RecipeCollection(Resource):
               properties:
                 error:
                   type: string
-                  description: Error message
+                message:
+                  type: string
         """
 
         body = RecipeBuilder()
@@ -215,27 +216,50 @@ class RecipeCollection(Resource):
             schema:
               type: object
               properties:
-                error:
+                resource_url:
+                  type: string
+                  description: The URL of the resource that triggered the error
+                "@error":
                   type: object
                   properties:
-                    title:
+                    "@message":
                       type: string
-                    description:
-                      type: string
+                      description: A short summary of the error
+                    "@messages":
+                      type: array
+                      description: Detailed validation or system error messages
+                      items:
+                        type: string
+                "@controls":
+                  type: object
+                  properties:
+                    profile:
+                      type: object
+                      properties:
+                        href:
+                          type: string
           401:
             description: Unauthorized - Invalid or missing API key
-          415:
-            description: Unsupported media type
             schema:
               type: object
               properties:
                 error:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
+                  type: string
+                message:
+                  type: string
+          415:
+            description: Unsupported media type
+            schema:
+              type: object
+              example:
+                resource_url: "string"
+                "@error":
+                  "@message": "Unsupported media type"
+                  "@messages":
+                    - "Requests must be JSON"
+                "@controls":
+                  profile:
+                    href: "/profiles/error/"
         """
         if not request.is_json:
             return create_415_error_response()
@@ -440,6 +464,13 @@ class RecipeItem(Resource):
                     href: "/api/recipes/1/ingredients/"
           401:
             description: Unauthorized - Invalid or missing API key
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                message:
+                  type: string
           404:
             description: Recipe not found
         """
@@ -530,29 +561,52 @@ class RecipeItem(Resource):
             schema:
               type: object
               properties:
-                error:
+                resource_url:
+                  type: string
+                  description: The URL of the resource that triggered the error
+                "@error":
                   type: object
                   properties:
-                    title:
+                    "@message":
                       type: string
-                    description:
-                      type: string
+                      description: A short summary of the error
+                    "@messages":
+                      type: array
+                      description: Detailed validation or system error messages
+                      items:
+                        type: string
+                "@controls":
+                  type: object
+                  properties:
+                    profile:
+                      type: object
+                      properties:
+                        href:
+                          type: string
           401:
             description: Unauthorized - Invalid or missing API key
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                message:
+                  type: string
           404:
             description: Recipe not found
           415:
             description: Unsupported media type
             schema:
               type: object
-              properties:
-                error:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
+              example:
+                resource_url: "string"
+                "@error":
+                  "@message": "Unsupported media type"
+                  "@messages":
+                    - "Requests must be JSON"
+                "@controls":
+                  profile:
+                    href: "/profiles/error/"
         """
         if not request.is_json:
             return create_415_error_response()
