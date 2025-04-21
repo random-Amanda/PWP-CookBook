@@ -12,10 +12,11 @@ from flasgger import Swagger
 # from cookbookapp.config import Config
 
 db = SQLAlchemy()
-cache = Cache(config={
-    'CACHE_TYPE': 'simple',  
-    'CACHE_DEFAULT_TIMEOUT': 300 
-})
+cache = Cache()
+# cache = Cache(config={
+#     'CACHE_TYPE': 'simple',
+#     'CACHE_DEFAULT_TIMEOUT': 300
+# })
 
 def create_app(test_config=None):
     """
@@ -29,8 +30,10 @@ def create_app(test_config=None):
         SECRET_KEY="dev",
         SQLALCHEMY_DATABASE_URI="sqlite:///" + os.path.join(app.instance_path, "pwp_cb.db"),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        CACHE_TYPE="FileSystemCache",
-        CACHE_DIR=os.path.join(app.instance_path, "cache")
+        # CACHE_TYPE="FileSystemCache",
+        # CACHE_DIR=os.path.join(app.instance_path, "cache"),
+        CACHE_TYPE="simple",
+        CACHE_DEFAULT_TIMEOUT=36000
     )
     print(app.instance_path)
 
