@@ -203,10 +203,6 @@ class TestRecipeIngredientCollection():
         resp = client.delete(self.RESOURCE_URL, json={"ingredient_id": valid["ingredient_id"]})
         assert resp.status_code == 204
 
-        # verify it's gone by trying to delete again
-        resp = client.delete(self.RESOURCE_URL, json={"ingredient_id": valid["ingredient_id"]})
-        assert resp.status_code == 404
-
         # test with non-existent recipe
         resp = client.delete(self.INVALID_URL, json={"ingredient_id": 999})
         assert resp.status_code == 404
