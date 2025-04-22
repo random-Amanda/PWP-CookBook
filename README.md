@@ -64,7 +64,12 @@ flask init-apikey
 flask gen-test-data
 ```
 
-### 4. View Database
+### 4. Clear Database
+```bash
+flask drop-db
+```
+
+### 5. View Database
 To view the database structure and data:
 ```bash
 sqlite3 instance/pwp_cb.db
