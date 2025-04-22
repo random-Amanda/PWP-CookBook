@@ -119,7 +119,10 @@ pytest
 pytest tests/recipe_resource_test.py
 
 # Run tests with coverage report
+# Able to check coverage report on web browser using $(pwd)/htmlcov/index.html
 pytest --cov=cookbookapp --cov-report=html
+
+pytest --cov=cookbookapp --cov-report=term-missing
 ```
 
 ### Test Data Management
