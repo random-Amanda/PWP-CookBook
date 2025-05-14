@@ -1,0 +1,9 @@
+# used for testing
+FROM python:3.13-alpine
+WORKDIR /opt/cookbookapp
+COPY . .
+RUN pip install -r requirements.txt && \
+    mkdir /opt/cookbookapp/instance && \
+    chgrp -R root /opt/cookbookapp && \
+    chmod -R g=u /opt/cookbookapp
+CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0", "cookbookapp:create_app()"]

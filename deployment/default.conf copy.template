@@ -1,0 +1,71 @@
+server {
+    # Make this the default server that is used to process a request
+    # where the HOST header does not match the server's server_name
+    # directive. Used to prevent host spoofing.
+    # Immediately closes the connection.
+
+    listen 8080 default_server;
+    return 444;
+}
+
+upstream app_server {
+    # This directive defines how requests are passed to Gunicorn.
+
+    # fail_timeout=0 means we always retry an upstream even if it failed
+    # to return a good HTTP response
+
+    # For UNIX domain socket setups, i.e. your app runs on the same
+    # machine with NGINX
+    # server unix:/tmp/gunicorn.sock fail_timeout=0;
+
+    # For a TCP configuration use IP address instead. Example use
+    # would be running NGINX and your app in two different containers
+    server localhost:8000 fail_timeout=0;
+}
+
+server {
+    # Use 'listen 8081 deferred;' for Linux.
+    # This prevents the process from being woken up until there's a
+    # packet with real data for it to process.
+    listen 8080 deferred;
+    client_max_body_size 4G;
+
+    # Read the server name from the HOSTNAME environment variable so
+    # that it can be set correctly at launch without rebuilding image
+    server_name ${HOSTNAME};
+
+    keepalive_timeout 5;
+
+    # The path from which static files are served.
+    # We don't have any in the app right now, so we are just
+    # using a default folder for nginx html files.
+    root /usr/share/nginx/html;
+
+    location / {
+        # Checks for static file. If not found, use the proxy_to_app
+        # location to process the request.
+        try_files $uri @proxy_to_app;
+    }
+
+    location @proxy_to_app {
+        # These are headers that allow our app to know more about
+        # the original request that was sent.
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $http_host;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+
+        # This line passes the request on to the address defined
+        # by the upstream directive above.
+        proxy_pass http://app_server;
+    }
+
+    # Serve a custom error 500 page from the app's static folder.
+    # Commented out since we don't actually have one.
+    # error_page 500 502 503 504 /500.html;
+    # location = /500.html {
+    #    root /opt/sensorapp/sensorapp/static/;
+    # }
+}
