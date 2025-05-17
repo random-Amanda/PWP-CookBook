@@ -59,7 +59,8 @@ server {
 
         # This line passes the request on to the address defined
         # by the upstream directive above.
-        proxy_pass http://app_server;
+        # proxy_pass http://app_server;
+        proxy_pass http://localhost:8000;
     }
 
     # Serve a custom error 500 page from the app's static folder.

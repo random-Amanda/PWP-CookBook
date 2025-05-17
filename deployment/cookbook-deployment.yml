@@ -23,9 +23,16 @@ spec:
       labels:
         app: cookbook-app
     spec:
+      initContainers:
+      - name: init-db
+        image: shehanhetti/cookbook:latest
+        command: ['sh', '-c', 'mkdir -p /opt/cookbook/instance && chmod 777 /opt/cookbook/instance']
+        volumeMounts:
+        - mountPath: /opt/cookbook/instance
+          name: instance-vol
       containers:
-        - name: cookbook-app
-          image: docker.io/shehanhetti/cookbook:latest # not push to repo use local image
+        - name: cookbook
+          image: shehanhetti/cookbook:latest
           imagePullPolicy: Always
           ports:
           - containerPort: 8000
@@ -33,8 +40,13 @@ spec:
           volumeMounts:
           - mountPath: /opt/cookbook/instance
             name: instance-vol
-        - name: nginx-testrun
-          image: docker.io/mioja/sensorhub-nginx:latest
+          env:
+          - name: FLASK_APP
+            value: "cookbookapp"
+          - name: FLASK_ENV
+            value: "production"
+        - name: cookbook-nginx
+          image: shehanhetti/cookbook-nginx:latest
           imagePullPolicy: Always
           ports:
           - containerPort: 8080

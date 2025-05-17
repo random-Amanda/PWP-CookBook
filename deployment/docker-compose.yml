@@ -1,0 +1,30 @@
+services:
+  cookbookapp-flask:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.cookbook
+    image: shehanhetti/cookbook:latest
+    container_name: cookbook-flask
+    volumes:
+      - cookbookapp-data:/opt/cookbookapp/instance
+    networks:
+      - cookbookapp-network
+  cookbookapp-nginx:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.nginx
+    image: shehanhetti/cookbook-nginx:latest
+    container_name: cookbookapp-nginx
+    ports:
+      - "80:8080"
+    depends_on:
+      - cookbookapp-flask
+    environment:
+      - HOSTNAME=localhost
+    networks:
+      - cookbookapp-network
+networks:
+  cookbookapp-network:
+    driver: bridge
+volumes:
+  cookbookapp-data:

@@ -1,0 +1,39 @@
+# FROM python:3.13-alpine
+# WORKDIR /opt/cookbook
+# COPY ../cookbookapp .
+# COPY ../requirements.txt .
+# RUN pip install -r requirements.txt && \
+#     mkdir /opt/cookbook/instance && \
+#     chgrp -R root /opt/cookbook && \
+#     chmod -R g=u /opt/cookbook
+
+# ENV PYTHONPATH=/opt/cookbook
+# CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:8000", "cookbookapp:create_app"]
+
+
+FROM python:3.13-alpine
+WORKDIR /opt/cookbookapp
+
+COPY ../requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY ../cookbookapp ./cookbookapp/
+
+RUN mkdir -p /opt/cookbookapp/instance && \
+    chgrp -R root /opt/cookbookapp && \
+    chmod -R g=u /opt/cookbookapp
+
+# Create entrypoint script
+RUN echo '#!/bin/sh' > /opt/cookbookapp/entrypoint.sh && \
+    echo 'echo "Initializing database..."' >> /opt/cookbookapp/entrypoint.sh && \
+    echo 'flask init-db' >> /opt/cookbookapp/entrypoint.sh && \
+    echo 'echo "Starting gunicorn..."' >> /opt/cookbookapp/entrypoint.sh && \
+    echo 'exec gunicorn -w 3 -b 0.0.0.0:8000 "cookbookapp:create_app()"' >> /opt/cookbookapp/entrypoint.sh && \
+    chmod +x /opt/cookbookapp/entrypoint.sh
+
+# Set environment variables
+ENV FLASK_APP=cookbookapp
+ENV FLASK_ENV=production
+
+# Use the entrypoint script
+ENTRYPOINT ["/opt/cookbookapp/entrypoint.sh"]
