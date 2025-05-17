@@ -14,7 +14,7 @@ RUN chmod g+rwx /var/cache/nginx /var/run /var/log/nginx && \
                -e 's/http {/http {\n    server_names_hash_bucket_size 128;/' \
                /etc/nginx/nginx.conf
 
-COPY default.conf.template /etc/nginx/templates/
+COPY deployment/default.conf.template /etc/nginx/templates/
 
 WORKDIR /usr/share/nginx/html/
 EXPOSE 8080
