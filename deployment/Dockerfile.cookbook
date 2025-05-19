@@ -1,15 +1,8 @@
-# FROM python:3.13-alpine
-# WORKDIR /opt/cookbook
-# COPY ../cookbookapp .
-# COPY ../requirements.txt .
-# RUN pip install -r requirements.txt && \
-#     mkdir /opt/cookbook/instance && \
-#     chgrp -R root /opt/cookbook && \
-#     chmod -R g=u /opt/cookbook
-
-# ENV PYTHONPATH=/opt/cookbook
-# CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:8000", "cookbookapp:create_app"]
-
+# # Dockerfile for Cookbook App
+# This Dockerfile is used to build a Docker image for the Cookbook App.
+# It is based on the official Python 3.13 Alpine image and installs the required dependencies.
+# The image is designed to run the Flask application using Gunicorn as the WSGI server.
+# The application code is copied into the image, and an entrypoint script is created to initialize the database and start the server.
 
 FROM python:3.13-alpine
 WORKDIR /opt/cookbookapp
@@ -23,12 +16,13 @@ RUN mkdir -p /opt/cookbookapp/instance && \
     chgrp -R root /opt/cookbookapp && \
     chmod -R g=u /opt/cookbookapp
 
-# Create entrypoint script
+# Create entrypoint script  
 RUN echo '#!/bin/sh' > /opt/cookbookapp/entrypoint.sh && \
     echo 'echo "Initializing database..."' >> /opt/cookbookapp/entrypoint.sh && \
     echo 'flask init-db' >> /opt/cookbookapp/entrypoint.sh && \
     echo 'echo "Starting gunicorn..."' >> /opt/cookbookapp/entrypoint.sh && \
     echo 'exec gunicorn -w 3 -b 0.0.0.0:8000 "cookbookapp:create_app()"' >> /opt/cookbookapp/entrypoint.sh && \
+    # echo 'flask init-apikey' >> /opt/cookbookapp/entrypoint.sh && \
     chmod +x /opt/cookbookapp/entrypoint.sh
 
 # Set environment variables
