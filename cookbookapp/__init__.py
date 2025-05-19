@@ -76,11 +76,6 @@ Key Features:
 - Ingredient Handling: Manage ingredients and their quantities
 - User Reviews: Handle user feedback and ratings
 
-Getting Started:
-1. Initialize the database: `flask init-db`
-2. Generate API key: `flask init-apikey`
-3. Add test data: `flask gen-test-data`
-
 For support or questions, please contact the development team.""",
                              "version": "1.0.0"
                          },
