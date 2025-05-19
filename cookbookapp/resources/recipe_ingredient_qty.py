@@ -211,6 +211,21 @@ class RecipeIngredientQtyCollection(Resource):
                   type: string
                 message:
                   type: string
+
+          404:
+            description: Recipe ingredient not found
+            schema:
+              type: object
+              example:
+                  resource_url: "/api/recipes/4/ingredients/"
+                  "@error":
+                    "@message": "Not Found"
+                    "@messages":
+                      - "Recipe Ingredient resource not found"
+                  "@controls":
+                    profile:
+                      href: "/profiles/error/" 
+                  
           415:
             description: Unsupported media type
             schema:
@@ -237,6 +252,10 @@ class RecipeIngredientQtyCollection(Resource):
 
         ingredientqty = RecipeIngredientQty.query.filter_by(
             recipe_id=recipe.recipe_id ,ingredient_id=ingredient_id).first()
+        
+        if not ingredientqty:
+            return create_404_error_response(
+                "Recipe Ingredient")
 
         ingredientqty.qty = request.json["qty"]
         ingredientqty.metric = request.json["metric"]
