@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cookbookapp-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cookbook-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cookbook-app
+  template:
+    metadata:
+      labels:
+        app: cookbook-app
+    spec:
+      containers:
+      - name: cookbook
+        image: shehanhetti/cookbook:latest
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: cookbookapp-data
+          mountPath: /opt/cookbookapp/instance
+        env:
+        - name: FLASK_APP
+          value: cookbookapp
+        - name: FLASK_ENV
+          value: production
+      - name: nginx
+        image: shehanhetti/cookbook-nginx:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: HOSTNAME
+          value: localhost
+      volumes:
+      - name: cookbookapp-data
+        persistentVolumeClaim:
+          claimName: cookbookapp-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cookbook-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: cookbook-app
