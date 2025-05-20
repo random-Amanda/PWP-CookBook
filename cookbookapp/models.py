@@ -368,6 +368,7 @@ def init_apikey_command():
         key=key_hash,
         admin=True
     )
+    db.session.query(ApiKey).delete()
     db.session.add(db_key)
     db.session.commit()
     click.echo(f'API-Key: {token}')  # View the original token, not the hash
