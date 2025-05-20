@@ -2,7 +2,7 @@
 # CookBook API
 
 ## Group Information
-* Student 1. Shehan Hettiarachchige (nicholas.hettiarachchige@student.oulu.fi)
+* Student 1. Nicholas, Hettiarachchige Don (nicholas.hettiarachchige@student.oulu.fi)
 * Student 2. Amanda Randombage (Amanda.Randombage@student.oulu.fi)
 * Student 3. Hans Madalagama (Hans.Madalagama@student.oulu.fi)
 
