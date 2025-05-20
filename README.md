@@ -141,3 +141,78 @@ flask gen-test-data
 # Run test
 pylint --disable=no-member,import-outside-toplevel,no-self-use ./cookbookapp
 ```
+
+## Deployment
+
+The CookBookApp deployed on Oracle Cloud Infrastructure (OCI).
+
+For successful deployment on OCI you should need:
+- Oracle could account (only for the **testing** and **learing purpose** can use Oracle Cloud Free Tier account)
+- OCI CLI install and configure (if needed follow https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)
+- Docker
+- kubectl
+
+After creating cluster in oracle web console. follow "Quick Start" steps and steup "Local Access", with this method we can manage the cluster locally.
+
+To check the current Kubernetes context (where your commands are being executed)
+
+```bash
+kubectl config current-context
+```
+
+Navigate to the project root and then run
+
+```bash
+kubectl apply -f deployment/cookbook-deployment-oci.yml
+```
+
+Check the status of the pods
+
+```bash
+kubectl get pods 
+```
+
+or for more specifically 
+
+```bash
+kubectl get pods -l app=cookbook-app
+```
+
+You can get pod names from above commands
+
+Then, create APIKEY using below command
+```bash
+kubectl exec -it <pod-name> -c cookbook -- flask init-apikey
+```
+
+you can get APIKEY for the client app or API client (Postman)
+ 
+To generate test data using
+```bash
+kubectl exec -it <pod-name> -c cookbook -- flask gen-test-data
+``` 
+
+To get service related details and external-IP/ public-IP
+```bash
+kubectl get svc cookbook-service
+```
+
+This public IP can be used in client app or API client (Postman)
+
+To check the events associated with the pod and get more details about pod
+```bash
+kubectl describe pod <pod-name>
+```
+
+To check PersistentVolumeClaim (PVC) and the associated PersistentVolume (PV)
+```bash
+kubectl get pvc
+
+kubectl describe pvc <PVC-name>
+```
+
+To check noded
+
+```bash
+kubectl get nodes -o wide
+```

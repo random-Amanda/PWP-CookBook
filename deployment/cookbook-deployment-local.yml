@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cookbook-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 32Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cookbook-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cookbook-app
+  template:
+    metadata:
+      labels:
+        app: cookbook-app
+    spec:
+      initContainers:
+      - name: init-db
+        image: shehanhetti/cookbook:latest
+        command: ['sh', '-c', 'mkdir -p /opt/cookbook/instance && chmod 777 /opt/cookbook/instance']
+        volumeMounts:
+        - mountPath: /opt/cookbook/instance
+          name: instance-vol
+      containers:
+      - name: cookbook
+        image: shehanhetti/cookbook:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /opt/cookbook/instance
+          name: instance-vol
+        env:
+        - name: FLASK_APP
+          value: "cookbookapp"
+        - name: FLASK_ENV
+          value: "production"
+      - name: cookbook-nginx
+        image: shehanhetti/cookbook-nginx:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: HOSTNAME
+          value: localhost
+      volumes:
+      - name: instance-vol
+        persistentVolumeClaim:
+          claimName: cookbook-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cookbook-app
+spec:
+  type: NodePort
+  selector:
+    app: cookbook-app
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30001

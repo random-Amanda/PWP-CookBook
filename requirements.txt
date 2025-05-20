@@ -13,6 +13,7 @@ Flask-Caching==2.3.1
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
 greenlet==3.1.1
+gunicorn==23.0.0
 iniconfig==2.0.0
 isort==6.0.1
 itsdangerous==2.2.0

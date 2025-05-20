@@ -252,7 +252,7 @@ class RecipeIngredientQtyCollection(Resource):
 
         ingredientqty = RecipeIngredientQty.query.filter_by(
             recipe_id=recipe.recipe_id ,ingredient_id=ingredient_id).first()
-        
+
         if not ingredientqty:
             return create_404_error_response(
                 "Recipe Ingredient")
